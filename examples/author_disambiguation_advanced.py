@@ -9,7 +9,20 @@
 
 """Advanced author disambiguation example.
 
-TODO: longer description
+This example shows how to build a full author disambiguation pipeline.
+The pipeline is made of two steps:
+
+    1) Supervised learning, for inferring a distance or affinity function
+       between publications. This estimator is learned from labeled paired data
+       and models whether two publications have been authored by the same
+       person.
+
+    2) Semi-supervised block clustering, for grouping together publications
+       from the same author. Publications are blocked by last name + first
+       initial, and then clustered using hierarchical clustering together with
+       the affinity function learned at the previous step. For each block,
+       the best cut-off threshold is chosen so as to maximize some scoring
+       metric on the provided labeled data.
 
 .. codeauthor:: Gilles Louppe <g.louppe@cern.ch>
 
@@ -17,7 +30,6 @@ TODO: longer description
 
 from __future__ import print_function
 
-from functools import partial
 import pickle
 import numpy as np
 import sys
@@ -246,9 +258,7 @@ def build_distance_estimator(X, y):
             ("combiner", CosineSimilarity())
         ])),
         ("year_diff", Pipeline([
-            ("pairs", PairTransformer(
-                element_transformer=FuncTransformer(func=get_year,
-                                                    dtype=np.int))),
+            ("pairs", FuncTransformer(func=get_year, dtype=np.int)),
             ("combiner", AbsoluteDifference())  # FIXME: when one is missing
         ]))])
 
@@ -266,8 +276,10 @@ def build_distance_estimator(X, y):
     return estimator
 
 
-def affinity(X, estimator, step=10000):
+def affinity(X, step=10000):
     """Custom affinity function, using a pre-learned distance estimator."""
+    # This assumes that 'distance_estimator' lives in global
+
     all_i, all_j = np.triu_indices(len(X), k=1)
     n_pairs = len(all_i)
     distances = np.zeros(n_pairs)
@@ -280,7 +292,7 @@ def affinity(X, estimator, step=10000):
                                        all_j[start:end])):
             Xt[k, 0], Xt[k, 1] = X[i, 0], X[j, 0]
 
-        Xt = estimator.predict_proba(Xt)[:, 1]
+        Xt = distance_estimator.predict_proba(Xt)[:, 1]
         distances[start:end] = Xt[:]
 
     return squareform(distances)
@@ -331,7 +343,7 @@ if __name__ == "__main__":
 
     # Semi-supervised block clustering
     train, test = train_test_split(np.arange(len(X)),
-                                   test_size=0.9, random_state=42)
+                                   test_size=0.75, random_state=42)
     y = -np.ones(len(X), dtype=np.int)
     y[train] = truth[train]
 
@@ -339,8 +351,9 @@ if __name__ == "__main__":
         blocking=blocking,
         base_estimator=ScipyHierarchicalClustering(
             threshold=0.9995,
-            affinity=partial(affinity, estimator=distance_estimator),
+            affinity=affinity,
             method="complete"),
+        verbose=3,
         n_jobs=-1).fit(X, y)
 
     labels = clusterer.labels_

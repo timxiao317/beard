@@ -51,12 +51,14 @@ class PairTransformer(TransformerMixin):
         """
         n_samples, n_features_all = X.shape
         self.n_features_ = n_features_all / 2
+        Xt = X
 
-        if sp.issparse(X):
-            Xt = sp.vstack((X[:, :self.n_features_],
-                            X[:, self.n_features_:])).tocsr()
+        if sp.issparse(Xt):
+            Xt = sp.vstack((Xt[:, :self.n_features_],
+                            Xt[:, self.n_features_:]))
         else:
-            Xt = np.vstack((X[:, :self.n_features_], X[:, self.n_features_:]))
+            Xt = np.vstack((Xt[:, :self.n_features_],
+                            Xt[:, self.n_features_:]))
 
         self.element_transformer.fit(Xt)
 
@@ -80,17 +82,18 @@ class PairTransformer(TransformerMixin):
             The transformed data.
         """
         n_samples = X.shape[0]
+        Xt = X
 
-        if sp.issparse(X):
-            Xt = sp.vstack((X[:, :self.n_features_],
-                            X[:, self.n_features_:])).tocsr()
+        if sp.issparse(Xt):
+            Xt = sp.vstack((Xt[:, :self.n_features_],
+                            Xt[:, self.n_features_:]))
         else:
-            Xt = np.vstack((X[:, :self.n_features_], X[:, self.n_features_:]))
+            Xt = np.vstack((Xt[:, :self.n_features_], X[:, self.n_features_:]))
 
         Xt = self.element_transformer.transform(Xt)
 
         if sp.issparse(Xt):
-            Xt = sp.hstack((Xt[:n_samples], Xt[n_samples:])).tocsr()
+            Xt = sp.hstack((Xt[:n_samples], Xt[n_samples:]))
         else:
             Xt = np.hstack((Xt[:n_samples], Xt[n_samples:]))
 
@@ -138,7 +141,7 @@ class CosineSimilarity(TransformerMixin):
         n_features = n_features_all / 2
         sparse = sp.issparse(X)
 
-        if sparse:
+        if sparse and not sp.isspmatrix_csr(X):
             X = X.tocsr()
 
         X1 = X[:, :n_features]
