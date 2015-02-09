@@ -12,17 +12,20 @@
 .. codeauthor:: Gilles Louppe <g.louppe@cern.ch>
 
 """
+from itertools import count
+
 import numpy as np
 import scipy.sparse as sp
 
+from sklearn.base import BaseEstimator
 from sklearn.base import TransformerMixin
 
 
-class PairTransformer(TransformerMixin):
+class PairTransformer(BaseEstimator, TransformerMixin):
 
     """Apply a transformer on all elements in paired data."""
 
-    def __init__(self, element_transformer):
+    def __init__(self, element_transformer, groupby=None):
         """Initialize.
 
         Parameters
@@ -31,6 +34,83 @@ class PairTransformer(TransformerMixin):
             The transformer to apply on each element.
         """
         self.element_transformer = element_transformer
+        self.groupby = groupby
+
+    def _flatten(self, X):
+        n_samples = X.shape[0]
+        n_features = X.shape[1] / 2
+        Xt = X
+
+        # Shortcut
+        if self.groupby is None:
+            if sp.issparse(Xt):
+                Xt = sp.vstack((Xt[:, :n_features],
+                                Xt[:, n_features:]))
+            else:
+                Xt = np.vstack((Xt[:, :n_features],
+                                Xt[:, n_features:]))
+
+            return Xt, np.arange(n_samples * 2, dtype=np.int)
+
+        # Group by keys
+        groupby = self.groupby
+        indices = []
+        key_indices = {}
+
+        for i, element in enumerate(Xt[:, :n_features]):
+            key = groupby(element)
+            if key not in key_indices:
+                key_indices[key] = (i, 0)
+            indices.append(key_indices[key])
+
+        for i, element in enumerate(Xt[:, n_features:]):
+            key = groupby(element)
+            if key not in key_indices:
+                key_indices[key] = (i, n_features)
+            indices.append(key_indices[key])
+
+        left_indices = {}
+        right_indices = {}
+        key_indices = sorted(key_indices.values())
+        j = 0
+
+        for i, start in key_indices:
+            if start == 0:
+                left_indices[i] = j
+                j += 1
+        for i, start in key_indices:
+            if start == n_features:
+                right_indices[i] = j
+                j += 1
+
+        if sp.issparse(Xt):
+            Xt = sp.vstack((Xt[sorted(left_indices.keys()), :n_features],
+                            Xt[sorted(right_indices.keys()), n_features:]))
+        else:
+            Xt = np.vstack((Xt[sorted(left_indices.keys()), :n_features],
+                            Xt[sorted(right_indices.keys()), n_features:]))
+
+        flat_indices = []
+
+        for i, start in indices:
+            if start == 0:
+                flat_indices.append(left_indices[i])
+            else:
+                flat_indices.append(right_indices[i])
+
+        return Xt, flat_indices
+
+    def _repack(self, Xt, indices):
+        n_samples = len(indices) / 2
+
+        if sp.issparse(Xt):
+            Xt = sp.hstack((Xt[indices[:n_samples]],
+                            Xt[indices[n_samples:]]))
+        else:
+            Xt = np.hstack((Xt[indices[:n_samples]],
+                            Xt[indices[n_samples:]]))
+
+        return Xt
 
     def fit(self, X, y=None):
         """Fit the given transformer on all individual elements in ``X``.
@@ -49,17 +129,8 @@ class PairTransformer(TransformerMixin):
         -------
         :returns: self
         """
-        n_samples, n_features_all = X.shape
-        self.n_features_ = n_features_all / 2
-
-        if sp.issparse(X):
-            Xt = sp.vstack((X[:, :self.n_features_],
-                            X[:, self.n_features_:])).tocsr()
-        else:
-            Xt = np.vstack((X[:, :self.n_features_], X[:, self.n_features_:]))
-
+        Xt, _ = self._flatten(X)
         self.element_transformer.fit(Xt)
-
         return self
 
     def transform(self, X):
@@ -79,25 +150,13 @@ class PairTransformer(TransformerMixin):
         :returns Xt: array-like, shape (n_samples, 2 * n_features_t
             The transformed data.
         """
-        n_samples = X.shape[0]
-
-        if sp.issparse(X):
-            Xt = sp.vstack((X[:, :self.n_features_],
-                            X[:, self.n_features_:])).tocsr()
-        else:
-            Xt = np.vstack((X[:, :self.n_features_], X[:, self.n_features_:]))
-
+        Xt, indices = self._flatten(X)
         Xt = self.element_transformer.transform(Xt)
-
-        if sp.issparse(Xt):
-            Xt = sp.hstack((Xt[:n_samples], Xt[n_samples:])).tocsr()
-        else:
-            Xt = np.hstack((Xt[:n_samples], Xt[n_samples:]))
-
+        Xt = self._repack(Xt, indices)
         return Xt
 
 
-class CosineSimilarity(TransformerMixin):
+class CosineSimilarity(BaseEstimator, TransformerMixin):
 
     """Cosine similarity on paired data."""
 
@@ -138,7 +197,7 @@ class CosineSimilarity(TransformerMixin):
         n_features = n_features_all / 2
         sparse = sp.issparse(X)
 
-        if sparse:
+        if sparse and not sp.isspmatrix_csr(X):
             X = X.tocsr()
 
         X1 = X[:, :n_features]
@@ -163,7 +222,7 @@ class CosineSimilarity(TransformerMixin):
         return Xt.reshape((n_samples, 1))
 
 
-class AbsoluteDifference(TransformerMixin):
+class AbsoluteDifference(BaseEstimator, TransformerMixin):
 
     """Absolute difference of paired data."""
 
