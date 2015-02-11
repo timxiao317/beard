@@ -15,10 +15,11 @@
 import numpy as np
 import scipy.sparse as sp
 
+from sklearn.base import BaseEstimator
 from sklearn.base import TransformerMixin
 
 
-class PairTransformer(TransformerMixin):
+class PairTransformer(BaseEstimator, TransformerMixin):
 
     """Apply a transformer on all elements in paired data."""
 
@@ -100,7 +101,7 @@ class PairTransformer(TransformerMixin):
         return Xt
 
 
-class CosineSimilarity(TransformerMixin):
+class CosineSimilarity(BaseEstimator, TransformerMixin):
 
     """Cosine similarity on paired data."""
 
@@ -166,7 +167,7 @@ class CosineSimilarity(TransformerMixin):
         return Xt.reshape((n_samples, 1))
 
 
-class AbsoluteDifference(TransformerMixin):
+class AbsoluteDifference(BaseEstimator, TransformerMixin):
 
     """Absolute difference of paired data."""
 

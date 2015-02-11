@@ -51,6 +51,7 @@ from beard.similarity import AbsoluteDifference
 from beard.utils import normalize_name
 from beard.utils import name_initials
 from beard.utils import FuncTransformer
+from beard.utils import MemoizedTransformer
 from beard.utils import Shaper
 
 
@@ -191,12 +192,15 @@ def build_distance_estimator(X, y):
             ("combiner", CosineSimilarity())
         ])),
         ("coauthors_similarity", Pipeline([
-            ("pairs", PairTransformer(element_transformer=Pipeline([
-                ("coauthors", FuncTransformer(func=get_coauthors)),
-                ("shaper", Shaper(newshape=(-1,))),
-                ("tf-idf", TfidfVectorizer(dtype=np.float32,
-                                           decode_error="replace")),
-            ]))),
+            ("pairs", PairTransformer(element_transformer=MemoizedTransformer(
+                Pipeline([
+                    ("coauthors", FuncTransformer(func=get_coauthors)),
+                    ("shaper", Shaper(newshape=(-1,))),
+                    ("tf-idf", TfidfVectorizer(dtype=np.float32,
+                                               decode_error="replace")),
+                ]),
+                lambda row: row[0]["signature_id"],
+                capacity=100, verbose=1))),
             ("combiner", CosineSimilarity())
         ])),
         ("title_similarity", Pipeline([
@@ -279,6 +283,8 @@ def build_distance_estimator(X, y):
 def affinity(X, step=10000):
     """Custom affinity function, using a pre-learned distance estimator."""
     # This assumes that 'distance_estimator' lives in global
+    cache = distance_estimator.get_params()["transformer__coauthors_similarity__pairs__element_transformer"]
+    cache._reset()
 
     all_i, all_j = np.triu_indices(len(X), k=1)
     n_pairs = len(all_i)
@@ -354,7 +360,7 @@ if __name__ == "__main__":
             affinity=affinity,
             method="complete"),
         verbose=3,
-        n_jobs=-1).fit(X, y)
+        n_jobs=6).fit(X, y)
 
     labels = clusterer.labels_
 
