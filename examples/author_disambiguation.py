@@ -73,9 +73,9 @@ def blocking(X):
     def last_name_first_initial(name):
         names = name.split(",", 1)
 
-        if len(names) == 2:
+        try:
             name = "%s %s" % (names[0], names[1].strip()[0])
-        else:
+        except IndexError:
             name = names[0]
 
         name = normalize_name(name)

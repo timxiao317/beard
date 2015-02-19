@@ -30,6 +30,7 @@ The pipeline is made of two steps:
 
 from __future__ import print_function
 
+import argparse
 import pickle
 import numpy as np
 import sys
@@ -38,6 +39,8 @@ from sklearn.cross_validation import train_test_split
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics import adjusted_mutual_info_score
+from sklearn.metrics import v_measure_score
 from sklearn.pipeline import FeatureUnion
 from sklearn.pipeline import Pipeline
 from scipy.spatial.distance import squareform
@@ -143,6 +146,10 @@ def get_year(s):
     return v
 
 
+def _groupby_signature_id(r):
+    return r[0]["signature_id"]
+
+
 def build_distance_estimator(X, y):
     # Build a vector reprensation of a pair of signatures
     transformer = FeatureUnion([
@@ -154,7 +161,7 @@ def build_distance_estimator(X, y):
                                            ngram_range=(2, 4),
                                            dtype=np.float32,
                                            decode_error="replace")),
-            ]), groupby=lambda r: r[0]["signature_id"])),
+            ]), groupby=_groupby_signature_id)),
             ("combiner", CosineSimilarity())
         ])),
         ("author_other_names_similarity", Pipeline([
@@ -165,7 +172,7 @@ def build_distance_estimator(X, y):
                                            ngram_range=(2, 4),
                                            dtype=np.float32,
                                            decode_error="replace")),
-            ]), groupby=lambda r: r[0]["signature_id"])),
+            ]), groupby=_groupby_signature_id)),
             ("combiner", CosineSimilarity())
         ])),
         ("author_initials_similarity", Pipeline([
@@ -176,7 +183,7 @@ def build_distance_estimator(X, y):
                                           ngram_range=(1, 1),
                                           binary=True,
                                           decode_error="replace")),
-            ]), groupby=lambda r: r[0]["signature_id"])),
+            ]), groupby=_groupby_signature_id)),
             ("combiner", CosineSimilarity())
         ])),
         ("affiliation_similarity", Pipeline([
@@ -187,7 +194,7 @@ def build_distance_estimator(X, y):
                                            ngram_range=(2, 4),
                                            dtype=np.float32,
                                            decode_error="replace")),
-            ]), groupby=lambda r: r[0]["signature_id"])),
+            ]), groupby=_groupby_signature_id)),
             ("combiner", CosineSimilarity())
         ])),
         ("coauthors_similarity", Pipeline([
@@ -196,7 +203,7 @@ def build_distance_estimator(X, y):
                 ("shaper", Shaper(newshape=(-1,))),
                 ("tf-idf", TfidfVectorizer(dtype=np.float32,
                                            decode_error="replace")),
-            ]), groupby=lambda r: r[0]["signature_id"])),
+            ]), groupby=_groupby_signature_id)),
             ("combiner", CosineSimilarity())
         ])),
         ("title_similarity", Pipeline([
@@ -207,7 +214,7 @@ def build_distance_estimator(X, y):
                                            ngram_range=(2, 4),
                                            dtype=np.float32,
                                            decode_error="replace")),
-            ]), groupby=lambda r: r[0]["signature_id"])),
+            ]), groupby=_groupby_signature_id)),
             ("combiner", CosineSimilarity())
         ])),
         ("journal_similarity", Pipeline([
@@ -218,7 +225,7 @@ def build_distance_estimator(X, y):
                                            ngram_range=(2, 4),
                                            dtype=np.float32,
                                            decode_error="replace")),
-            ]), groupby=lambda r: r[0]["signature_id"])),
+            ]), groupby=_groupby_signature_id)),
             ("combiner", CosineSimilarity())
         ])),
         ("abstract_similarity", Pipeline([
@@ -227,7 +234,7 @@ def build_distance_estimator(X, y):
                 ("shaper", Shaper(newshape=(-1,))),
                 ("tf-idf", TfidfVectorizer(dtype=np.float32,
                                            decode_error="replace")),
-            ]), groupby=lambda r: r[0]["signature_id"])),
+            ]), groupby=_groupby_signature_id)),
             ("combiner", CosineSimilarity())
         ])),
         ("keywords_similarity", Pipeline([
@@ -236,7 +243,7 @@ def build_distance_estimator(X, y):
                 ("shaper", Shaper(newshape=(-1,))),
                 ("tf-idf", TfidfVectorizer(dtype=np.float32,
                                            decode_error="replace")),
-            ]), groupby=lambda r: r[0]["signature_id"])),
+            ]), groupby=_groupby_signature_id)),
             ("combiner", CosineSimilarity())
         ])),
         ("collaborations_similarity", Pipeline([
@@ -245,7 +252,7 @@ def build_distance_estimator(X, y):
                 ("shaper", Shaper(newshape=(-1,))),
                 ("tf-idf", TfidfVectorizer(dtype=np.float32,
                                            decode_error="replace")),
-            ]), groupby=lambda r: r[0]["signature_id"])),
+            ]), groupby=_groupby_signature_id)),
             ("combiner", CosineSimilarity())
         ])),
         ("references_similarity", Pipeline([
@@ -254,7 +261,7 @@ def build_distance_estimator(X, y):
                 ("shaper", Shaper(newshape=(-1,))),
                 ("tf-idf", TfidfVectorizer(dtype=np.float32,
                                            decode_error="replace")),
-            ]), groupby=lambda r: r[0]["signature_id"])),
+            ]), groupby=_groupby_signature_id)),
             ("combiner", CosineSimilarity())
         ])),
         ("year_diff", Pipeline([
@@ -298,14 +305,36 @@ def affinity(X, step=10000):
     return squareform(distances)
 
 
+def affinity_baseline(X):
+    """Compute pairwise distances between (author, affiliation) tuples.
+
+    Note that this function is a heuristic. It should ideally be replaced
+    by a more robust distance function, e.g. using a model learned over
+    pairs of tuples.
+    """
+    distances = np.zeros((len(X), len(X)), dtype=np.float)
+
+    for i, j in zip(*np.triu_indices(len(X), k=1)):
+        name_i = normalize_name(X[i, 0]["author_name"])
+        name_j = normalize_name(X[j, 0]["author_name"])
+
+        if name_i == name_j:
+            distances[i, j] = 0.0
+        else:
+            distances[i, j] = 1.0
+
+    distances += distances.T
+    return distances
+
+
 def blocking(X):
     """Blocking function using last name and first initial as key."""
     def last_name_first_initial(name):
         names = name.split(",", 1)
 
-        if len(names) == 2:
+        try:
             name = "%s %s" % (names[0], names[1].strip()[0])
-        else:
+        except IndexError:
             name = names[0]
 
         name = normalize_name(name)
@@ -320,60 +349,84 @@ def blocking(X):
 
 
 if __name__ == "__main__":
+    # Parse command line arugments
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--distance_model', default=None, type=str)
+    parser.add_argument('--distance_data', default=None, type=str)
+    parser.add_argument('--clustering_data', default=None, type=str)
+    parser.add_argument('--clustering_threshold', default=0.9995, type=float)
+    parser.add_argument('--clustering_test_size', default=0.75, type=float)
+    parser.add_argument('--clustering_random_state', default=42, type=int)
+    parser.add_argument('--baseline', default=0, type=int)
+    args = parser.parse_args()
+
     # Load paired data
-    X, y, signatures, records = pickle.load(open(sys.argv[1], "r"))
-    signatures, records = resolve_publications(signatures, records)
+    if args.distance_data is not None:
+        X, y, signatures, records = pickle.load(open(args.distance_data, "r"))
+        signatures, records = resolve_publications(signatures, records)
 
-    Xt = np.empty((len(X), 2), dtype=np.object)
-    for k, (i, j) in enumerate(X):
-        Xt[k, 0] = signatures[i]
-        Xt[k, 1] = signatures[j]
-    X = Xt
+        Xt = np.empty((len(X), 2), dtype=np.object)
+        for k, (i, j) in enumerate(X):
+            Xt[k, 0] = signatures[i]
+            Xt[k, 1] = signatures[j]
+        X = Xt
 
-    # Learn a distance estimator on paired signatures
-    distance_estimator = build_distance_estimator(X, y)
+        # Learn a distance estimator on paired signatures
+        distance_estimator = build_distance_estimator(X, y)
+
+        if args.distance_model is not None:
+            pickle.dump(distance_estimator, open(args.distance_model, "w"))
+
+    if args.distance_model is not None and args.distance_data is None:
+        distance_estimator = pickle.load(open(args.distance_model, "r"))
 
     # Load signatures to cluster
-    signatures, truth, records = pickle.load(open(sys.argv[2], "r"))
-    _, records = resolve_publications(signatures, records)
+    if args.clustering_data is not None:
+        signatures, truth, records = pickle.load(open(args.clustering_data, "r"))
+        _, records = resolve_publications(signatures, records)
 
-    X = np.empty((len(signatures), 1), dtype=np.object)
-    for i, signature in enumerate(signatures):
-        X[i, 0] = signature
+        X = np.empty((len(signatures), 1), dtype=np.object)
+        for i, signature in enumerate(signatures):
+            X[i, 0] = signature
 
-    # Semi-supervised block clustering
-    train, test = train_test_split(np.arange(len(X)),
-                                   test_size=0.75, random_state=42)
-    y = -np.ones(len(X), dtype=np.int)
-    y[train] = truth[train]
+        # Semi-supervised block clustering
+        train, test = train_test_split(np.arange(len(X)),
+                                       test_size=args.clustering_test_size,
+                                       random_state=args.clustering_random_state)
+        y = -np.ones(len(X), dtype=np.int)
+        y[train] = truth[train]
 
-    clusterer = BlockClustering(
-        blocking=blocking,
-        base_estimator=ScipyHierarchicalClustering(
-            threshold=0.9995,
-            affinity=affinity,
-            method="complete"),
-        verbose=3,
-        n_jobs=-1).fit(X, y)
+        clusterer = BlockClustering(
+            blocking=blocking,
+            base_estimator=ScipyHierarchicalClustering(
+                threshold=args.clustering_threshold,
+                affinity=affinity if args.baseline == 0 else affinity_baseline,
+                method="complete"),
+            verbose=1,
+            n_jobs=-1).fit(X, y)
 
-    labels = clusterer.labels_
+        labels = clusterer.labels_
 
-    # Print clusters
-    for cluster in np.unique(labels):
-        entries = set()
+        # # Print clusters
+        # for cluster in np.unique(labels):
+        #     entries = set()
 
-        for signature in X[labels == cluster, 0]:
-            entries.add((signature["author_name"],
-                         signature["author_affiliation"]))
+        #     for signature in X[labels == cluster, 0]:
+        #         entries.add((signature["author_name"],
+        #                      signature["author_affiliation"]))
 
-        print("Cluster #%d = %s" % (cluster, entries))
-    print()
+        #     print("Cluster #%d = %s" % (cluster, entries))
+        # print()
 
-    # Statistics
-    print("Number of blocks =", len(clusterer.clusterers_))
-    print("True number of clusters", len(np.unique(truth)))
-    print("Number of computed clusters", len(np.unique(labels)))
-    print("Paired F-score (overall) =", paired_f_score(truth, labels))
-    print("Paired F-score (train) =", paired_f_score(truth[train],
-                                                     labels[train]))
-    print("Paired F-score (test) =", paired_f_score(truth[test], labels[test]))
+        # Statistics
+        results = []
+        results.append(args.clustering_data)
+        results.append(args.clustering_test_size)
+        results.append(args.distance_model)
+
+        for score in [paired_f_score, adjusted_mutual_info_score, v_measure_score]:
+            results.append(score(truth, labels))
+            results.append(score(truth[train], labels[train]))
+            results.append(score(truth[test], labels[test]))
+
+        print(results)
