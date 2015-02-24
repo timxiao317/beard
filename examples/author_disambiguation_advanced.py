@@ -47,7 +47,8 @@ from scipy.spatial.distance import squareform
 
 from beard.clustering import BlockClustering
 from beard.clustering import ScipyHierarchicalClustering
-from beard.metrics import paired_f_score
+from beard.metrics import b3_f_score
+from beard.metrics import b3_precision_recall_fscore
 from beard.similarity import PairTransformer
 from beard.similarity import CosineSimilarity
 from beard.similarity import AbsoluteDifference
@@ -348,6 +349,28 @@ def blocking(X):
     return np.array(blocks)
 
 
+def tune(clusterer, truth, thresholds):
+    best_score = -np.inf
+    best_t = 1.0
+
+    for t in thresholds:
+        for b, c in clusterer.clusterers_.items():
+            if hasattr(c, "best_threshold_"):
+                del c.best_threshold_
+
+            if hasattr(c, "threshold"):
+                c.set_params(threshold=t)
+
+        score = b3_f_score(truth, clusterer.labels_)
+        print(t, score)
+
+        if score > best_score:
+            best_score = score
+            best_t = t
+
+    return best_t, best_score
+
+
 if __name__ == "__main__":
     # Parse command line arugments
     parser = argparse.ArgumentParser()
@@ -358,6 +381,7 @@ if __name__ == "__main__":
     parser.add_argument('--clustering_test_size', default=0.75, type=float)
     parser.add_argument('--clustering_random_state', default=42, type=int)
     parser.add_argument('--baseline', default=0, type=int)
+    parser.add_argument('--tuner', default=0, type=int)
     args = parser.parse_args()
 
     # Load paired data
@@ -394,39 +418,47 @@ if __name__ == "__main__":
                                        test_size=args.clustering_test_size,
                                        random_state=args.clustering_random_state)
         y = -np.ones(len(X), dtype=np.int)
-        y[train] = truth[train]
+
+        if args.tuner == 0:
+            y[train] = truth[train]
 
         clusterer = BlockClustering(
             blocking=blocking,
             base_estimator=ScipyHierarchicalClustering(
                 threshold=args.clustering_threshold,
                 affinity=affinity if args.baseline == 0 else affinity_baseline,
-                method="complete"),
+                method="complete",
+                scoring=b3_f_score),
             verbose=1,
             n_jobs=-1).fit(X, y)
 
-        labels = clusterer.labels_
+        if args.tuner > 0:
+            best_t, best_score = tune(clusterer, truth, np.arange(0.99, 1.0, 0.0001))
+            print(args.clustering_data, best_t, best_score)
 
-        # # Print clusters
-        # for cluster in np.unique(labels):
-        #     entries = set()
+        else:
+            labels = clusterer.labels_
 
-        #     for signature in X[labels == cluster, 0]:
-        #         entries.add((signature["author_name"],
-        #                      signature["author_affiliation"]))
+            # # Print clusters
+            # for cluster in np.unique(labels):
+            #     entries = set()
 
-        #     print("Cluster #%d = %s" % (cluster, entries))
-        # print()
+            #     for signature in X[labels == cluster, 0]:
+            #         entries.add((signature["author_name"],
+            #                      signature["author_affiliation"]))
 
-        # Statistics
-        results = []
-        results.append(args.clustering_data)
-        results.append(args.clustering_test_size)
-        results.append(args.distance_model)
+            #     print("Cluster #%d = %s" % (cluster, entries))
+            # print()
 
-        for score in [paired_f_score, adjusted_mutual_info_score, v_measure_score]:
-            results.append(score(truth, labels))
-            results.append(score(truth[train], labels[train]))
-            results.append(score(truth[test], labels[test]))
+            # Statistics
+            results = []
+            results.append(args.clustering_data)
+            results.append(args.clustering_test_size)
+            results.append(args.distance_model)
 
-        print(results)
+            for score in [b3_precision_recall_fscore]:
+                results.extend(score(truth, labels))
+                results.extend(score(truth[train], labels[train]))
+                results.extend(score(truth[test], labels[test]))
+
+            print(results)

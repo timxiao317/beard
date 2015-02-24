@@ -71,11 +71,14 @@ def b3_precision_recall_fscore(labels_true, labels_pred):
     recall = 0.0
 
     for i in range(n_samples):
-        precision += np.mean([labels_true[i] == labels_true[j]
-                              for j in pred_clusters[labels_pred[i]]])
+        precision += len(pred_clusters[labels_pred[i]].intersection(true_clusters[labels_true[i]])) / len(pred_clusters[labels_pred[i]])
+        recall += len(pred_clusters[labels_pred[i]].intersection(true_clusters[labels_true[i]])) / len(true_clusters[labels_true[i]])
 
-        recall += np.mean([labels_pred[i] == labels_pred[j]
-                           for j in true_clusters[labels_true[i]]])
+        # precision += np.mean([labels_true[i] == labels_true[j]
+        #                       for j in pred_clusters[labels_pred[i]]])
+
+        # recall += np.mean([labels_pred[i] == labels_pred[j]
+        #                    for j in true_clusters[labels_true[i]]])
 
     precision /= n_samples
     recall /= n_samples
