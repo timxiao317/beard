@@ -176,7 +176,6 @@ def pair_sampling(blocking_function,
         true_clusters.update(json.load(open(clusters_filename, "r")))
     clusters_reversed = {v: k for k, va in true_clusters.iteritems()
                          for v in va}
-    print(len(clusters_reversed.keys()))
     train_signatures = []
     for train_filename in train_filename_list:
         train_signatures += json.load(open(train_filename, "r"))
@@ -221,6 +220,7 @@ def pair_sampling(blocking_function,
 
         for i, s1 in enumerate(sig_s):
             for s2 in sig_s[i+1:]:
+                print(sig_s, s1, s2)
                 s1_id = train_signatures[s1]['signature_id']
                 s2_id = train_signatures[s2]['signature_id']
                 s1_name = train_signatures[s1]['author_name']
