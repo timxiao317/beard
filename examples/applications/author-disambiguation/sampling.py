@@ -220,7 +220,7 @@ def pair_sampling(blocking_function,
 
         for i, s1 in enumerate(sig_s):
             for s2 in sig_s[i+1:]:
-                print(sig_s, s1, s2)
+                print(s1, s2)
                 s1_id = train_signatures[s1]['signature_id']
                 s2_id = train_signatures[s2]['signature_id']
                 s1_name = train_signatures[s1]['author_name']
