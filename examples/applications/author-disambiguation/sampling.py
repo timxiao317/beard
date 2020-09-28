@@ -39,11 +39,14 @@ from __future__ import print_function
 import argparse
 import json
 import math
+import os
+
 import numpy as np
 import random
 
 from beard.clustering import block_phonetic
 from beard.clustering import block_last_name_first_initial
+from utils import load_split
 
 
 def _noblocking_sampling(sample_size, train_signatures, clusters_reversed):
@@ -107,8 +110,8 @@ def _noblocking_sampling(sample_size, train_signatures, clusters_reversed):
 def pair_sampling(blocking_function,
                   blocking_threshold,
                   blocking_phonetic_alg,
-                  clusters_filename,
-                  train_filename,
+                  clusters_filename_list,
+                  train_filename_list,
                   balanced=1, verbose=1,
                   sample_size=1000000,
                   use_blocking=1):
@@ -168,11 +171,14 @@ def pair_sampling(blocking_function,
         list of signature pairs
     """
     # Load ground-truth
-    true_clusters = json.load(open(clusters_filename, "r"))
+    true_clusters = {}
+    for clusters_filename in clusters_filename_list:
+        true_clusters.update(json.load(open(clusters_filename, "r")))
     clusters_reversed = {v: k for k, va in true_clusters.iteritems()
                          for v in va}
-
-    train_signatures = json.load(open(train_filename, "r"))
+    train_signatures = []
+    for train_filename in train_filename_list:
+        train_signatures += json.load(open(train_filename, "r"))
 
     if not use_blocking:
         return _noblocking_sampling(sample_size, train_signatures,
@@ -257,8 +263,11 @@ def pair_sampling(blocking_function,
 if __name__ == "__main__":
     # Parse command line arugments
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input_signatures", default="../../data/wang_signatures.json", type=str)
-    parser.add_argument("--input_clusters", default="../../data/wang_clusters.json", type=str)
+    parser.add_argument("--dataset_name", default="whoiswho_new_idf", type=str)
+    # parser.add_argument("--input_signatures", default="../../data/wang_signatures.json", type=str)
+    # parser.add_argument("--input_clusters", default="../../data/wang_clusters.json", type=str)
+    parser.add_argument("--split_dir", default="../../../../split/", type=str)
+    parser.add_argument("--dataset_path", default="../../../../sota_data/louppe/whoiswho_new", type=str)
     parser.add_argument("--balanced", default=1, type=int)
     parser.add_argument("--sample_size", default=1000000, type=int)
     parser.add_argument("--output_pairs", default="pairs.json", type=str)
@@ -271,9 +280,15 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    _, train_name_list, val_name_list, test_name_list = load_split(args.split_dir, args.dataset_name)
+    input_signatures_list = [os.path.join(args.dataset_path, train_name, "signatures.json") for train_name in train_name_list]
+    input_clusters_list = [os.path.join(args.dataset_path, train_name, "clusters.json") for train_name in train_name_list]
+
+
+
     pairs = pair_sampling(
-        train_filename=args.input_signatures,
-        clusters_filename=args.input_clusters,
+        train_filename=input_signatures_list,
+        clusters_filename=input_clusters_list,
         balanced=args.balanced,
         sample_size=args.sample_size,
         use_blocking=args.use_blocking,
@@ -282,7 +297,6 @@ if __name__ == "__main__":
         blocking_phonetic_alg=args.blocking_phonetic_alg,
         verbose=args.verbose
     )
-
     if args.verbose:
         print("number of pairs", len(pairs))
 

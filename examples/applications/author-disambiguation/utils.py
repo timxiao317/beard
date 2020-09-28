@@ -15,6 +15,8 @@
 """
 
 import json
+import os
+import pickle
 
 from beard.utils import given_name
 from beard.utils import name_initials
@@ -402,3 +404,8 @@ def group_by_signature(r):
         Signature id
     """
     return r[0]["signature_id"]
+
+
+def load_split(split_path, dataset_name):
+    with open(os.path.join(split_path, dataset_name), 'rb') as load:
+        return pickle.load(load)
