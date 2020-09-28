@@ -263,7 +263,7 @@ def pair_sampling(blocking_function,
 if __name__ == "__main__":
     # Parse command line arugments
     parser = argparse.ArgumentParser()
-    parser.add_argument("--dataset_name", default="whoiswho_new_idf", type=str)
+    parser.add_argument("--dataset_name", default="whoiswho_new_python2", type=str)
     # parser.add_argument("--input_signatures", default="../../data/wang_signatures.json", type=str)
     # parser.add_argument("--input_clusters", default="../../data/wang_clusters.json", type=str)
     parser.add_argument("--split_dir", default="../../../../split/", type=str)
