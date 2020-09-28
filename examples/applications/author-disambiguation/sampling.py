@@ -267,7 +267,7 @@ if __name__ == "__main__":
     # parser.add_argument("--input_signatures", default="../../data/wang_signatures.json", type=str)
     # parser.add_argument("--input_clusters", default="../../data/wang_clusters.json", type=str)
     parser.add_argument("--split_dir", default="../../../../split/", type=str)
-    parser.add_argument("--dataset_path", default="../../../../sota_data/louppe/whoiswho_new", type=str)
+    parser.add_argument("--dataset_path", default="../../../../sota_data/louppe_data/whoiswho_new", type=str)
     parser.add_argument("--balanced", default=1, type=int)
     parser.add_argument("--sample_size", default=1000000, type=int)
     parser.add_argument("--output_pairs", default="pairs.json", type=str)
