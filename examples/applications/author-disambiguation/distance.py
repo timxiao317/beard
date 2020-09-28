@@ -346,12 +346,11 @@ def learn_model(distance_pairs, input_signatures, input_records,
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--distance_pairs", required=True, type=str)
-    parser.add_argument("--distance_model", required=True,  type=str)
-    parser.add_argument("--input_signatures", required=True,  type=str)
-    parser.add_argument("--input_records", required=True, type=str)
-    parser.add_argument("--input_ethnicity_estimator", required=False,
-                        type=str),
+    parser.add_argument("--distance_pairs", default="pair.json", type=str)
+    parser.add_argument("--distance_model", default="linkage.dat",  type=str)
+    parser.add_argument("--input_signatures", default="../../data/wang_signatures.json",  type=str)
+    parser.add_argument("--input_records", default="../../data/wang_records.json", type=str)
+    parser.add_argument("--input_ethnicity_estimator", default="ethnicity_estimator.pickle", type=str),
     parser.add_argument("--fast", default=0, type=int)
     parser.add_argument("--verbose", default=1, type=int)
     args = parser.parse_args()
