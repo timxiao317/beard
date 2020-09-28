@@ -287,7 +287,7 @@ def _build_distance_estimator(X, y, verbose=0, ethnicity_estimator=None,
     return estimator
 
 
-def learn_model(distance_pairs, input_signatures_list, input_clusters_list,
+def learn_model(distance_pairs, input_signatures_list, input_records_list,
                 distance_model, verbose=0, ethnicity_estimator=None,
                 fast=False):
     """Learn the distance model for pairs of signatures.
@@ -325,7 +325,7 @@ def learn_model(distance_pairs, input_signatures_list, input_clusters_list,
         features.
     """
     pairs = json.load(open(distance_pairs, "r"))
-    signatures, records = load_signatures_list(input_signatures, input_records)
+    signatures, records = load_signatures_list(input_signatures_list, input_records_list)
 
     X = np.empty((len(pairs), 2), dtype=np.object)
     y = np.empty(len(pairs), dtype=np.int)
@@ -366,10 +366,10 @@ if __name__ == "__main__":
                                                "r"))
     _, train_name_list, val_name_list, test_name_list = load_split(args.split_dir, args.dataset_name)
     input_signatures_list = [os.path.join(args.dataset_path, train_name, "signatures.json") for train_name in train_name_list]
-    input_clusters_list = [os.path.join(args.dataset_path, train_name, "clusters.json") for train_name in train_name_list]
+    input_records_list = [os.path.join(args.dataset_path, train_name, "records.json") for train_name in train_name_list]
 
 
-    learn_model(args.distance_pairs, input_signatures_list, input_clusters_list,
+    learn_model(args.distance_pairs, input_signatures_list, input_records_list,
                 args.distance_model, args.verbose,
                 ethnicity_estimator=ethnicity_estimator,
                 fast=args.fast == 1)
