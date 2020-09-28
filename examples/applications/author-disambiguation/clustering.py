@@ -17,12 +17,13 @@ See README.rst for further details.
 """
 
 import argparse
+import os
 import pickle
 import json
 import numpy as np
 
 from functools import partial
-
+from utils import load_split
 from sklearn.cross_validation import train_test_split
 
 # These imports are used during unpickling.
@@ -273,13 +274,19 @@ def clustering(input_signatures, input_records, distance_model,
                                }
                 }, open(results_file, 'w'))
 
+
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--distance_model", required=True, type=str)
-    parser.add_argument("--input_signatures", required=True, type=str)
-    parser.add_argument("--input_records", required=True, type=str)
-    parser.add_argument("--input_clusters", default=None, type=str)
-    parser.add_argument("--output_clusters", required=True, type=str)
+    parser.add_argument("--distance_model", default="linkage.dat", type=str)
+    # parser.add_argument("--input_signatures", required=True, type=str)
+    # parser.add_argument("--input_records", required=True, type=str)
+    # parser.add_argument("--input_clusters", default=None, type=str)
+    # parser.add_argument("--output_clusters", required=True, type=str)
+    parser.add_argument("--dataset_name", default="whoiswho_new_python2", type=str)
+    parser.add_argument("--split_dir", default="../../../../split/", type=str)
+    parser.add_argument("--dataset_path", default="../../../../sota_data/louppe_data/whoiswho_new", type=str)
     parser.add_argument("--clustering_method", default="average", type=str)
     parser.add_argument("--clustering_threshold", default=None, type=float)
     parser.add_argument("--train_signatures", default=None, type=str)
@@ -291,6 +298,9 @@ if __name__ == "__main__":
     parser.add_argument("--verbose", default=1, type=int)
     parser.add_argument("--n_jobs", default=1, type=int)
     args = parser.parse_args()
+    _, train_name_list, val_name_list, test_name_list = load_split(args.split_dir, args.dataset_name)
+    input_signatures_list = [os.path.join(args.dataset_path, test_name, "signatures.json") for test_name in test_name_list]
+    input_clusters_list = [os.path.join(args.dataset_path, test_name, "clusters.json") for test_name in test_name_list]
 
     clustering(args.input_signatures, args.input_records, args.distance_model,
                args.input_clusters, args.output_clusters,

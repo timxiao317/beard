@@ -18,6 +18,7 @@ See README.rst for further details.
 """
 
 import argparse
+import os
 import pickle
 import json
 import numpy as np
@@ -45,7 +46,7 @@ from utils import get_references
 from utils import get_topics
 from utils import get_year
 from utils import group_by_signature
-from utils import load_signatures
+from utils import load_signatures, load_signatures_list
 
 from beard.similarity import AbsoluteDifference
 from beard.similarity import CosineSimilarity
@@ -55,6 +56,7 @@ from beard.similarity import EstimatorTransformer
 from beard.similarity import ElementMultiplication
 from beard.utils import FuncTransformer
 from beard.utils import Shaper
+from utils import load_split
 
 
 def _build_distance_estimator(X, y, verbose=0, ethnicity_estimator=None,
@@ -285,7 +287,7 @@ def _build_distance_estimator(X, y, verbose=0, ethnicity_estimator=None,
     return estimator
 
 
-def learn_model(distance_pairs, input_signatures, input_records,
+def learn_model(distance_pairs, input_signatures_list, input_clusters_list,
                 distance_model, verbose=0, ethnicity_estimator=None,
                 fast=False):
     """Learn the distance model for pairs of signatures.
@@ -323,7 +325,7 @@ def learn_model(distance_pairs, input_signatures, input_records,
         features.
     """
     pairs = json.load(open(distance_pairs, "r"))
-    signatures, records = load_signatures(input_signatures, input_records)
+    signatures, records = load_signatures_list(input_signatures, input_records)
 
     X = np.empty((len(pairs), 2), dtype=np.object)
     y = np.empty(len(pairs), dtype=np.int)
@@ -348,8 +350,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--distance_pairs", default="pairs.json", type=str)
     parser.add_argument("--distance_model", default="linkage.dat",  type=str)
-    parser.add_argument("--input_signatures", default="../../data/wang_signatures.json",  type=str)
-    parser.add_argument("--input_records", default="../../data/wang_records.json", type=str)
+    # parser.add_argument("--input_signatures", default="../../data/wang_signatures.json",  type=str)
+    # parser.add_argument("--input_records", default="../../data/wang_records.json", type=str)
+    parser.add_argument("--dataset_name", default="whoiswho_new_python2", type=str)
+    parser.add_argument("--split_dir", default="../../../../split/", type=str)
+    parser.add_argument("--dataset_path", default="../../../../sota_data/louppe_data/whoiswho_new", type=str)
     parser.add_argument("--input_ethnicity_estimator", required=False, type=str),
     parser.add_argument("--fast", default=0, type=int)
     parser.add_argument("--verbose", default=1, type=int)
@@ -359,8 +364,12 @@ if __name__ == "__main__":
     if args.input_ethnicity_estimator:
         ethnicity_estimator = pickle.load(open(args.input_ethnicity_estimator,
                                                "r"))
+    _, train_name_list, val_name_list, test_name_list = load_split(args.split_dir, args.dataset_name)
+    input_signatures_list = [os.path.join(args.dataset_path, train_name, "signatures.json") for train_name in train_name_list]
+    input_clusters_list = [os.path.join(args.dataset_path, train_name, "clusters.json") for train_name in train_name_list]
 
-    learn_model(args.distance_pairs, args.input_signatures, args.input_records,
+
+    learn_model(args.distance_pairs, input_signatures_list, input_clusters_list,
                 args.distance_model, args.verbose,
                 ethnicity_estimator=ethnicity_estimator,
                 fast=args.fast == 1)

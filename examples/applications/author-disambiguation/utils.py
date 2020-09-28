@@ -54,6 +54,24 @@ def load_signatures(signatures_filename, records_filename):
 
     return signatures, records
 
+def load_signatures_list(signatures_filename_list, records_filename_list):
+    signatures = []
+    records = []
+    for signatures_filename in signatures_filename_list:
+        signatures += json.load(open(signatures_filename, "r"))
+    for records_filename in records_filename_list:
+        records += json.load(open(records_filename, "r"))
+
+    if isinstance(signatures, list):
+        signatures = {s["signature_id"]: s for s in signatures}
+
+    if isinstance(records, list):
+        records = {r["publication_id"]: r for r in records}
+
+    for signature_id, signature in signatures.items():
+        signature["publication"] = records[signature["publication_id"]]
+
+    return signatures, records
 
 def get_author_full_name(s):
     """Get author full name from the signature.
