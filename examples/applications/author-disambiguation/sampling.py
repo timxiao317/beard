@@ -243,18 +243,20 @@ def pair_sampling(blocking_function,
     if balanced:
         if verbose:
             print("len of dasn:", len(dasn))
-            print("len of sadn:", len(sadn))
+            # print("len of sadn:", len(sadn))
             print("len of sasn:", len(sasn))
-            print("len of dadn:", len(dadn))
+            # print("len of dadn:", len(dadn))
 
         all_pairs = map(lambda x: int(math.ceil(
                         category_size/float(len(x)))) * x,
-                        [dasn, sasn, sadn, dadn])
+                        [dasn, sasn])
         pairs = reduce(lambda x, y: x + random.sample(y, category_size),
                        all_pairs, [])
     else:
-        positive = sasn + sadn
-        negative = dasn + dadn
+        # positive = sasn + sadn
+        # negative = dasn + dadn
+        positive = sasn
+        negative = dasn
         pairs = random.sample(positive,
                               sample_size/2) + random.sample(negative,
                                                              sample_size/2)
