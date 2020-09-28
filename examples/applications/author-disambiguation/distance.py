@@ -75,37 +75,37 @@ def _build_distance_estimator(X, y, verbose=0, ethnicity_estimator=None,
                 ]), groupby=group_by_signature)),
                 ("combiner", CosineSimilarity())
             ])),
-            ("author_second_initial_similarity", Pipeline([
-                ("pairs", PairTransformer(element_transformer=FuncTransformer(
-                    func=get_second_initial
-                ), groupby=group_by_signature)),
-                ("combiner", StringDistance(
-                    similarity_function="character_equality"))
-            ])),
-            ("author_first_given_name_similarity", Pipeline([
-                ("pairs", PairTransformer(element_transformer=FuncTransformer(
-                    func=get_first_given_name
-                ), groupby=group_by_signature)),
-                ("combiner", StringDistance())
-            ])),
-            ("author_second_given_name_similarity", Pipeline([
-                ("pairs", PairTransformer(element_transformer=FuncTransformer(
-                    func=get_second_given_name
-                ), groupby=group_by_signature)),
-                ("combiner", StringDistance())
-            ])),
-            ("author_other_names_similarity", Pipeline([
-                ("pairs", PairTransformer(element_transformer=Pipeline([
-                    ("other_names", FuncTransformer(
-                        func=get_author_other_names)),
-                    ("shaper", Shaper(newshape=(-1,))),
-                    ("tf-idf", TfidfVectorizer(analyzer="char_wb",
-                                               ngram_range=(2, 4),
-                                               dtype=np.float32,
-                                               decode_error="replace")),
-                ]), groupby=group_by_signature)),
-                ("combiner", CosineSimilarity())
-            ])),
+            # ("author_second_initial_similarity", Pipeline([
+            #     ("pairs", PairTransformer(element_transformer=FuncTransformer(
+            #         func=get_second_initial
+            #     ), groupby=group_by_signature)),
+            #     ("combiner", StringDistance(
+            #         similarity_function="character_equality"))
+            # ])),
+            # ("author_first_given_name_similarity", Pipeline([
+            #     ("pairs", PairTransformer(element_transformer=FuncTransformer(
+            #         func=get_first_given_name
+            #     ), groupby=group_by_signature)),
+            #     ("combiner", StringDistance())
+            # ])),
+            # ("author_second_given_name_similarity", Pipeline([
+            #     ("pairs", PairTransformer(element_transformer=FuncTransformer(
+            #         func=get_second_given_name
+            #     ), groupby=group_by_signature)),
+            #     ("combiner", StringDistance())
+            # ])),
+            # ("author_other_names_similarity", Pipeline([
+            #     ("pairs", PairTransformer(element_transformer=Pipeline([
+            #         ("other_names", FuncTransformer(
+            #             func=get_author_other_names)),
+            #         ("shaper", Shaper(newshape=(-1,))),
+            #         ("tf-idf", TfidfVectorizer(analyzer="char_wb",
+            #                                    ngram_range=(2, 4),
+            #                                    dtype=np.float32,
+            #                                    decode_error="replace")),
+            #     ]), groupby=group_by_signature)),
+            #     ("combiner", CosineSimilarity())
+            # ])),
             ("affiliation_similarity", Pipeline([
                 ("pairs", PairTransformer(element_transformer=Pipeline([
                     ("affiliation", FuncTransformer(
@@ -150,15 +150,15 @@ def _build_distance_estimator(X, y, verbose=0, ethnicity_estimator=None,
                 ]), groupby=group_by_signature)),
                 ("combiner", CosineSimilarity())
             ])),
-            ("abstract_similarity", Pipeline([
-                ("pairs", PairTransformer(element_transformer=Pipeline([
-                    ("abstract", FuncTransformer(func=get_abstract)),
-                    ("shaper", Shaper(newshape=(-1,))),
-                    ("tf-idf", TfidfVectorizer(dtype=np.float32,
-                                               decode_error="replace")),
-                ]), groupby=group_by_signature)),
-                ("combiner", CosineSimilarity())
-            ])),
+            # ("abstract_similarity", Pipeline([
+            #     ("pairs", PairTransformer(element_transformer=Pipeline([
+            #         ("abstract", FuncTransformer(func=get_abstract)),
+            #         ("shaper", Shaper(newshape=(-1,))),
+            #         ("tf-idf", TfidfVectorizer(dtype=np.float32,
+            #                                    decode_error="replace")),
+            #     ]), groupby=group_by_signature)),
+            #     ("combiner", CosineSimilarity())
+            # ])),
             ("keywords_similarity", Pipeline([
                 ("pairs", PairTransformer(element_transformer=Pipeline([
                     ("keywords", FuncTransformer(func=get_keywords)),
@@ -178,15 +178,15 @@ def _build_distance_estimator(X, y, verbose=0, ethnicity_estimator=None,
                 ]), groupby=group_by_signature)),
                 ("combiner", CosineSimilarity())
             ])),
-            ("subject_similairty", Pipeline([
-               ("pairs", PairTransformer(element_transformer=Pipeline([
-                   ("keywords", FuncTransformer(func=get_topics)),
-                   ("shaper", Shaper(newshape=(-1))),
-                   ("tf-idf", TfidfVectorizer(dtype=np.float32,
-                                              decode_error="replace")),
-               ]), groupby=group_by_signature)),
-               ("combiner", CosineSimilarity())
-            ])),
+            # ("subject_similairty", Pipeline([
+            #    ("pairs", PairTransformer(element_transformer=Pipeline([
+            #        ("keywords", FuncTransformer(func=get_topics)),
+            #        ("shaper", Shaper(newshape=(-1))),
+            #        ("tf-idf", TfidfVectorizer(dtype=np.float32,
+            #                                   decode_error="replace")),
+            #    ]), groupby=group_by_signature)),
+            #    ("combiner", CosineSimilarity())
+            # ])),
             ("year_diff", Pipeline([
                 ("pairs", FuncTransformer(func=get_year, dtype=np.int)),
                 ("combiner", AbsoluteDifference())
