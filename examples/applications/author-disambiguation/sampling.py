@@ -257,7 +257,7 @@ def pair_sampling(blocking_function,
 if __name__ == "__main__":
     # Parse command line arugments
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input_signatures", required=True, type=str)
+    parser.add_argument("--input_signatures", default="../../data/wang_signatures.json", type=str)
     parser.add_argument("--input_clusters", default="clusters.json", type=str)
     parser.add_argument("--balanced", default=1, type=int)
     parser.add_argument("--sample_size", default=1000000, type=int)
