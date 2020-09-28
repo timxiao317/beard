@@ -287,8 +287,8 @@ if __name__ == "__main__":
 
 
     pairs = pair_sampling(
-        train_filename=input_signatures_list,
-        clusters_filename=input_clusters_list,
+        train_filename_list=input_signatures_list,
+        clusters_filename_list=input_clusters_list,
         balanced=args.balanced,
         sample_size=args.sample_size,
         use_blocking=args.use_blocking,
