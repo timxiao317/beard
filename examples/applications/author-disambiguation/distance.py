@@ -168,16 +168,16 @@ def _build_distance_estimator(X, y, verbose=0, ethnicity_estimator=None,
                 ]), groupby=group_by_signature)),
                 ("combiner", CosineSimilarity())
             ])),
-            ("collaborations_similarity", Pipeline([
-                ("pairs", PairTransformer(element_transformer=Pipeline([
-                    ("collaborations", FuncTransformer(
-                        func=get_collaborations)),
-                    ("shaper", Shaper(newshape=(-1,))),
-                    ("tf-idf", TfidfVectorizer(dtype=np.float32,
-                                               decode_error="replace")),
-                ]), groupby=group_by_signature)),
-                ("combiner", CosineSimilarity())
-            ])),
+            # ("collaborations_similarity", Pipeline([
+            #     ("pairs", PairTransformer(element_transformer=Pipeline([
+            #         ("collaborations", FuncTransformer(
+            #             func=get_collaborations)),
+            #         ("shaper", Shaper(newshape=(-1,))),
+            #         ("tf-idf", TfidfVectorizer(dtype=np.float32,
+            #                                    decode_error="replace")),
+            #     ]), groupby=group_by_signature)),
+            #     ("combiner", CosineSimilarity())
+            # ])),
             # ("subject_similairty", Pipeline([
             #    ("pairs", PairTransformer(element_transformer=Pipeline([
             #        ("keywords", FuncTransformer(func=get_topics)),
