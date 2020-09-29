@@ -271,6 +271,7 @@ def clustering(input_signatures, input_records, distance_model,
 
         for label, signature_ids in true_clusters.items():
             for signature_id in signature_ids:
+                print(indices[signature_id])
                 y_true[indices[signature_id]] = label
 
         y = -np.ones(len(X), dtype=np.int)
