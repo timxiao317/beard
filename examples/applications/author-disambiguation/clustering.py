@@ -25,7 +25,6 @@ import numpy as np
 
 from functools import partial
 from utils import load_split
-from sklearn.cross_validation import train_test_split
 
 # These imports are used during unpickling.
 from utils import get_author_full_name
