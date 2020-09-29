@@ -279,7 +279,7 @@ def _build_distance_estimator(X, y, verbose=0, ethnicity_estimator=None,
     # classifier = RandomForestClassifier(n_estimators=500,
     #                                     verbose=verbose,
     #                                     n_jobs=8)
-
+    print("start fit!!!")
     # Return the whole pipeline
     estimator = Pipeline([("transformer", transformer),
                           ("classifier", classifier)]).fit(X, y)
