@@ -366,7 +366,8 @@ if __name__ == "__main__":
     # parser.add_argument("--input_records", required=True, type=str)
     # parser.add_argument("--input_clusters", default=None, type=str)
     # parser.add_argument("--output_clusters", required=True, type=str)
-    parser.add_argument("--out_dir", default="out/result", type=str)
+    parser.add_argument("--out_dir", default="out", type=str)
+    parser.add_argument("--out_filename", default="result.csv", type=str)
     parser.add_argument("--dataset_name", default="whoiswho_new_python2", type=str)
     parser.add_argument("--split_dir", default="../../../../split/", type=str)
     parser.add_argument("--dataset_path", default="../../../../sota_data/louppe_data/whoiswho_new", type=str)
@@ -383,9 +384,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
     _, train_name_list, val_name_list, test_name_list = load_split(args.split_dir, args.dataset_name)
 
+    if not os.path.exists(args.out_dir):
+        os.makedirs(args.out_dir)
 
-
-    wf = codecs.open(os.path.join(args.out_dir, 'results.csv'), 'w', encoding='utf-8')
+    wf = codecs.open(os.path.join(args.out_dir, args.out_filename), 'w', encoding='utf-8')
     wf.write('name,precision,recall,f1\n')
     tp_sum = 0
     fp_sum = 0
