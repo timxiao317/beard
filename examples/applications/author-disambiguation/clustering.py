@@ -54,7 +54,7 @@ from beard.clustering import ScipyHierarchicalClustering
 from beard.metrics import b3_f_score
 from beard.metrics import b3_precision_recall_fscore
 from beard.metrics import paired_precision_recall_fscore
-from beard.metrics.clustering import detailed_paired_precision_recall_fscore
+from beard.metrics import detailed_paired_precision_recall_fscore
 
 
 def _affinity(X, step=10000):
