@@ -368,7 +368,7 @@ if __name__ == "__main__":
     input_signatures_list = [os.path.join(args.dataset_path, train_name, "signatures.json") for train_name in train_name_list]
     input_records_list = [os.path.join(args.dataset_path, train_name, "records.json") for train_name in train_name_list]
 
-
+    
     learn_model(args.distance_pairs, input_signatures_list, input_records_list,
                 args.distance_model, args.verbose,
                 ethnicity_estimator=ethnicity_estimator,

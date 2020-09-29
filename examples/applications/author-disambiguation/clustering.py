@@ -17,6 +17,7 @@ See README.rst for further details.
 """
 
 import argparse
+import codecs
 import os
 import pickle
 import json
@@ -53,6 +54,7 @@ from beard.clustering import ScipyHierarchicalClustering
 from beard.metrics import b3_f_score
 from beard.metrics import b3_precision_recall_fscore
 from beard.metrics import paired_precision_recall_fscore
+from beard.metrics.clustering import detailed_paired_precision_recall_fscore
 
 
 def _affinity(X, step=10000):
@@ -232,13 +234,16 @@ def clustering(input_signatures, input_records, distance_model,
         json.dump(clusters, open(output_clusters, "w"))
 
     # Statistics
-    if verbose and input_clusters:
+    if input_clusters:
         print("Number of blocks =", len(clusterer.clusterers_))
         print("True number of clusters", len(np.unique(y_true)))
         print("Number of computed clusters", len(np.unique(labels)))
 
         b3_overall = b3_precision_recall_fscore(y_true, labels)
-        print("B^3 F-score (overall) =", b3_overall[2])
+        paired_overall = detailed_paired_precision_recall_fscore(y_true, labels)
+        print("F-score (overall) =", paired_overall[2])
+        print("b^3 F-score (overall) =", b3_overall[2])
+
 
         if train_signatures_file:
             b3_train = b3_precision_recall_fscore(
@@ -273,7 +278,7 @@ def clustering(input_signatures, input_records, distance_model,
                                "test": list(paired_test)
                                }
                 }, open(results_file, 'w'))
-
+        return paired_overall
 
 
 
@@ -284,6 +289,7 @@ if __name__ == "__main__":
     # parser.add_argument("--input_records", required=True, type=str)
     # parser.add_argument("--input_clusters", default=None, type=str)
     # parser.add_argument("--output_clusters", required=True, type=str)
+    parser.add_argument("--out_dir", default="out/result", type=str)
     parser.add_argument("--dataset_name", default="whoiswho_new_python2", type=str)
     parser.add_argument("--split_dir", default="../../../../split/", type=str)
     parser.add_argument("--dataset_path", default="../../../../sota_data/louppe_data/whoiswho_new", type=str)
@@ -299,11 +305,36 @@ if __name__ == "__main__":
     parser.add_argument("--n_jobs", default=1, type=int)
     args = parser.parse_args()
     _, train_name_list, val_name_list, test_name_list = load_split(args.split_dir, args.dataset_name)
-    input_signatures_list = [os.path.join(args.dataset_path, test_name, "signatures.json") for test_name in test_name_list]
-    input_clusters_list = [os.path.join(args.dataset_path, test_name, "clusters.json") for test_name in test_name_list]
 
-    clustering(args.input_signatures, args.input_records, args.distance_model,
-               args.input_clusters, args.output_clusters,
-               args.verbose, args.n_jobs, args.clustering_method,
-               args.train_signatures, args.clustering_threshold,
-               args.results_file)
+
+
+    wf = codecs.open(os.path.join(args.out_dir, 'results.csv'), 'w', encoding='utf-8')
+    wf.write('name,precision,recall,f1\n')
+    tp_sum = 0
+    fp_sum = 0
+    fn_sum = 0
+    precision_sum = 0
+    recall_sum = 0
+    for test_name in test_name_list:
+        input_signatures = os.path.join(args.dataset_path, test_name, "signatures.json")
+        input_records = os.path.join(args.dataset_path, test_name, "records.json")
+        input_clusters = os.path.join(args.dataset_path, test_name, "clusters.json")
+        tp, fp, fn, precision, recall, f1 = clustering(input_signatures, input_records, args.distance_model,
+                   input_clusters, None,
+                   args.verbose, args.n_jobs, args.clustering_method,
+                   args.train_signatures, args.clustering_threshold,
+                   args.results_file)
+        wf.write('{0},{1:.5f},{2:.5f},{3:.5f}\n'.format(test_name, precision, recall, f1))
+        tp_sum += tp
+        fp_sum += fp
+        fn_sum += fn
+        precision_sum += precision
+        recall_sum += recall
+        macro_precision = precision_sum / len(test_name_list)
+        macro_recall = recall_sum / len(test_name_list)
+        macro_f1 = 2 * macro_precision * macro_recall / (macro_precision + macro_recall)
+        micro_precision = tp_sum / (tp_sum + fp_sum)
+        micro_recall = tp_sum / (tp_sum + fn_sum)
+        micro_f1 = 2 * micro_precision * micro_recall / (micro_precision + micro_recall)
+        wf.write('average,{0:.5f},{1:.5f},{2:.5f},{3:.5f},{4:5f},{5:5f}\n'.format(
+            macro_precision, macro_recall, macro_f1, micro_precision, micro_recall, micro_f1))
