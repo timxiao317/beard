@@ -357,7 +357,7 @@ if __name__ == "__main__":
     parser.add_argument("--dataset_path", default="../../../../sota_data/louppe_data/whoiswho_new", type=str)
     parser.add_argument("--input_ethnicity_estimator", required=False, type=str),
     parser.add_argument("--fast", default=0, type=int)
-    parser.add_argument("--verbose", default=1, type=int)
+    parser.add_argument("--verbose", default=2, type=int)
     args = parser.parse_args()
 
     ethnicity_estimator = None
