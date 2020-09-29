@@ -269,10 +269,9 @@ def clustering(input_signatures, input_records, distance_model,
         true_clusters = json.load(open(input_clusters, "r"))
         y_true = -np.ones(len(X), dtype=np.int)
 
-        for label, signature_ids in true_clusters.items():
+        for label_index, (label, signature_ids) in enumerate(true_clusters.items()):
             for signature_id in signature_ids:
-                print(indices[signature_id])
-                y_true[indices[signature_id]] = label
+                y_true[indices[signature_id]] = label_index
 
         y = -np.ones(len(X), dtype=np.int)
 
