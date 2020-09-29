@@ -272,7 +272,7 @@ def _build_distance_estimator(X, y, verbose=0, ethnicity_estimator=None,
 
     classifier = GradientBoostingClassifier(n_estimators=500,
                                             max_depth=9,
-                                            max_features=10,
+                                            max_features=None,
                                             learning_rate=0.125,
                                             verbose=verbose)
 
