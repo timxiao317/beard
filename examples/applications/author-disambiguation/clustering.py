@@ -56,82 +56,6 @@ from beard.metrics import b3_precision_recall_fscore
 from beard.metrics import paired_precision_recall_fscore
 
 
-def detailed_paired_precision_recall_fscore(labels_true, labels_pred):
-    """Compute the pairwise variant of precision, recall and F-score.
-
-    Precision is the ability not to label as positive a sample
-    that is negative. The best value is 1 and the worst is 0.
-
-    Recall is the ability to successfully find all the positive samples.
-    The best value is 1 and the worst is 0.
-
-    F-score (Harmonic mean) can be thought as a weighted harmonic mean of
-    the precision and recall, where an F-score reaches its best value at 1
-    and worst at 0.
-
-    Parameters
-    ----------
-    :param labels_true: 1d array containing the ground truth cluster labels.
-    :param labels_pred: 1d array containing the predicted cluster labels.
-
-    Returns
-    -------
-    :return float precision: calculated precision
-    :return float recall: calculated recall
-    :return float f_score: calculated f_score
-
-    Reference
-    ---------
-    Levin, Michael et al., "Citation-based bootstrapping for large-scale
-    author disambiguation", Journal of the American Society for Information
-    Science and Technology 63.5 (2012): 1030-1047.
-    """
-    # Check that labels_* are 1d arrays and have the same size
-    labels_true, labels_pred = check_clusterings(labels_true, labels_pred)
-
-    # Check that input given is not the empty set
-    if labels_true.shape == (0, ):
-        raise ValueError(
-            "input labels must not be empty.")
-
-    # Assigns each label to its own cluster
-    default_clustering = range(len(labels_pred))
-
-    # Calculate precision
-    numerator = _general_merge_distance(labels_true, labels_pred,
-                                        fm=_zero, fs=mul)
-    denominator = _general_merge_distance(default_clustering,
-                                          labels_pred,
-                                          fm=_zero, fs=mul)
-    fp = numerator
-    tp = denominator - numerator
-    try:
-        precision = 1.0 - numerator / denominator
-    except ZeroDivisionError:
-        precision = 1.0
-
-    # Calculate recall
-    numerator = _general_merge_distance(labels_true, labels_pred,
-                                        fm=mul, fs=_zero)
-    denominator = _general_merge_distance(labels_true,
-                                          default_clustering,
-                                          fm=mul, fs=_zero)
-    fn = numerator
-    assert fn + numerator == denominator
-    try:
-        recall = 1.0 - numerator / denominator
-    except ZeroDivisionError:
-        recall = 1.0
-
-    # Calculate f_score
-
-    # If both are zero (minimum score) then f_score is also zero
-    if precision + recall == 0.0:
-        f_score = 0.0
-    else:
-        f_score = 2.0 * precision * recall / (precision + recall)
-
-    return tp, fp, fn, precision, recall, f_score
 
 
 def _affinity(X, step=10000):
@@ -317,8 +241,8 @@ def clustering(input_signatures, input_records, distance_model,
         print("Number of computed clusters", len(np.unique(labels)))
 
         b3_overall = b3_precision_recall_fscore(y_true, labels)
-        paired_overall = detailed_paired_precision_recall_fscore(y_true, labels)
-        print("F-score (overall) =", paired_overall[2])
+        paired_overall = paired_precision_recall_fscore(y_true, labels)
+        print("F-score (overall) =", paired_overall[-1])
         print("b^3 F-score (overall) =", b3_overall[2])
 
 

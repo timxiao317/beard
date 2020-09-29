@@ -228,6 +228,8 @@ def paired_precision_recall_fscore(labels_true, labels_pred):
     denominator = _general_merge_distance(default_clustering,
                                           labels_pred,
                                           fm=_zero, fs=mul)
+    fp = numerator
+    tp = denominator - numerator
     try:
         precision = 1.0 - numerator / denominator
     except ZeroDivisionError:
@@ -239,6 +241,8 @@ def paired_precision_recall_fscore(labels_true, labels_pred):
     denominator = _general_merge_distance(labels_true,
                                           default_clustering,
                                           fm=mul, fs=_zero)
+    fn = numerator
+    assert fn + numerator == denominator
     try:
         recall = 1.0 - numerator / denominator
     except ZeroDivisionError:
@@ -252,7 +256,7 @@ def paired_precision_recall_fscore(labels_true, labels_pred):
     else:
         f_score = 2.0 * precision * recall / (precision + recall)
 
-    return precision, recall, f_score
+    return tp, fp, fn, precision, recall, f_score
 
 def paired_precision_score(labels_true, labels_pred):
     """Compute the pairwise variant of precision.
