@@ -327,16 +327,16 @@ if __name__ == "__main__":
                    args.train_signatures, args.clustering_threshold,
                    args.results_file)
         wf.write('{0},{1:.5f},{2:.5f},{3:.5f}\n'.format(test_name, precision, recall, f1))
-        tp_sum += tp
-        fp_sum += fp
-        fn_sum += fn
-        precision_sum += precision
-        recall_sum += recall
-        macro_precision = precision_sum / len(test_name_list)
-        macro_recall = recall_sum / len(test_name_list)
-        macro_f1 = 2 * macro_precision * macro_recall / (macro_precision + macro_recall)
-        micro_precision = tp_sum / (tp_sum + fp_sum)
-        micro_recall = tp_sum / (tp_sum + fn_sum)
-        micro_f1 = 2 * micro_precision * micro_recall / (micro_precision + micro_recall)
-        wf.write('average,{0:.5f},{1:.5f},{2:.5f},{3:.5f},{4:5f},{5:5f}\n'.format(
-            macro_precision, macro_recall, macro_f1, micro_precision, micro_recall, micro_f1))
+    tp_sum += tp
+    fp_sum += fp
+    fn_sum += fn
+    precision_sum += precision
+    recall_sum += recall
+    macro_precision = precision_sum / len(test_name_list)
+    macro_recall = recall_sum / len(test_name_list)
+    macro_f1 = 2 * macro_precision * macro_recall / (macro_precision + macro_recall)
+    micro_precision = tp_sum / (tp_sum + fp_sum)
+    micro_recall = tp_sum / (tp_sum + fn_sum)
+    micro_f1 = 2 * micro_precision * micro_recall / (micro_precision + micro_recall)
+    wf.write('average,{0:.5f},{1:.5f},{2:.5f},{3:.5f},{4:5f},{5:5f}\n'.format(
+        macro_precision, macro_recall, macro_f1, micro_precision, micro_recall, micro_f1))
