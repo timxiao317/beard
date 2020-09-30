@@ -242,6 +242,7 @@ def paired_precision_recall_fscore(labels_true, labels_pred):
                                           default_clustering,
                                           fm=mul, fs=_zero)
     fn = numerator
+    print(fp, tp ,fn, denominator)
     assert fn + tp == denominator
     try:
         recall = 1.0 - numerator / denominator
