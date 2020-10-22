@@ -290,7 +290,7 @@ if __name__ == "__main__":
     # parser.add_argument("--input_clusters", default=None, type=str)
     # parser.add_argument("--output_clusters", required=True, type=str)
     parser.add_argument("--out_dir", default="out", type=str)
-    parser.add_argument("--out_filename", default="result.csv", type=str)
+    parser.add_argument("--out_filename", default="test.csv", type=str)
     parser.add_argument("--dataset_name", default="whoiswho_new_python2", type=str)
     parser.add_argument("--split_dir", default="../../../../split/", type=str)
     parser.add_argument("--dataset_path", default="../../../../sota_data/louppe_data/whoiswho_new", type=str)
@@ -332,6 +332,7 @@ if __name__ == "__main__":
     fn_sum += fn
     precision_sum += precision
     recall_sum += recall
+    print(tp, fp, fn, precision, recall)
     macro_precision = precision_sum / len(test_name_list)
     macro_recall = recall_sum / len(test_name_list)
     macro_f1 = 2 * macro_precision * macro_recall / (macro_precision + macro_recall)
