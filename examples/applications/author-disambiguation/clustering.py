@@ -328,7 +328,6 @@ if __name__ == "__main__":
                    args.verbose, args.n_jobs, args.clustering_method,
                    args.train_signatures, args.clustering_threshold,
                    args.results_file)
-n        print(tp, fp, fn, precision, recall)
         tp_sum += tp
         fp_sum += fp
         fn_sum += fn
