@@ -328,8 +328,7 @@ if __name__ == "__main__":
                    args.verbose, args.n_jobs, args.clustering_method,
                    args.train_signatures, args.clustering_threshold,
                    args.results_file)
-        wf.write('{0},{1:.5f},{2:.5f},{3:.5f}\n'.format(test_name, precision, recall, f1))
-        print(tp, fp, fn, precision, recall)
+n        print(tp, fp, fn, precision, recall)
         tp_sum += tp
         fp_sum += fp
         fn_sum += fn
