@@ -18,6 +18,7 @@ from .clustering import paired_precision_score
 from .clustering import paired_recall_score
 from .clustering import paired_f_score
 from .clustering import silhouette_score
+from .clustering import paired_precision_recall_fscore_new
 from .text import jaro
 from .text import jaro_winkler
 from .text import levenshtein
