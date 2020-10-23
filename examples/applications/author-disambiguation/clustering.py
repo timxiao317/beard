@@ -52,7 +52,8 @@ from beard.clustering import block_phonetic
 from beard.clustering import ScipyHierarchicalClustering
 from beard.metrics import b3_f_score
 from beard.metrics import b3_precision_recall_fscore
-from beard.metrics import paired_precision_recall_fscore
+from beard.metrics import paired_precision_recall_fscore, paired_precision_recall_fscore_new
+
 
 
 
@@ -240,8 +241,8 @@ def clustering(input_signatures, input_records, distance_model,
         print("Number of computed clusters", len(np.unique(labels)))
 
         b3_overall = b3_precision_recall_fscore(y_true, labels)
-        print(len(y_true), len(y_true) ** 2)
         paired_overall = paired_precision_recall_fscore(y_true, labels)
+        print("new metrics =", paired_precision_recall_fscore_new(y_true, labels))
         print("F-score (overall) =", paired_overall[-1])
         print("b^3 F-score (overall) =", b3_overall[2])
 
