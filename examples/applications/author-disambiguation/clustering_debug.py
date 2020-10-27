@@ -320,6 +320,8 @@ if __name__ == "__main__":
     precision_sum = 0
     recall_sum = 0
     for test_name in test_name_list:
+        if test_name != "juan liu":
+            continue
         input_signatures = os.path.join(args.dataset_path, test_name, "signatures.json")
         input_records = os.path.join(args.dataset_path, test_name, "records.json")
         input_clusters = os.path.join(args.dataset_path, test_name, "clusters.json")
