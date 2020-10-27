@@ -292,7 +292,7 @@ if __name__ == "__main__":
     # parser.add_argument("--input_clusters", default=None, type=str)
     # parser.add_argument("--output_clusters", required=True, type=str)
     parser.add_argument("--out_dir", default="out", type=str)
-    parser.add_argument("--out_filename", default="test.csv", type=str)
+    parser.add_argument("--out_filename", default="result.csv", type=str)
     parser.add_argument("--dataset_name", default="whoiswho_new_python2", type=str)
     parser.add_argument("--split_dir", default="../../../../split/", type=str)
     parser.add_argument("--dataset_path", default="../../../../sota_data/louppe_data/whoiswho_new", type=str)
@@ -313,7 +313,7 @@ if __name__ == "__main__":
         os.makedirs(args.out_dir)
 
     wf = codecs.open(os.path.join(args.out_dir, args.out_filename), 'w', encoding='utf-8')
-    wf.write('name,precision,recall,f1\n')
+    wf.write('name,precision,recall,f1,tp,fp,fn\n')
     tp_sum = 0
     fp_sum = 0
     fn_sum = 0
@@ -328,6 +328,7 @@ if __name__ == "__main__":
                    args.verbose, args.n_jobs, args.clustering_method,
                    args.train_signatures, args.clustering_threshold,
                    args.results_file)
+        wf.write('{0},{1:.5f},{2:.5f},{3:.5f},{4:.5f},{5:.5f},{6:.5f}\n'.format(test_name, precision, recall, f1, tp, fn, fn))
         tp_sum += tp
         fp_sum += fp
         fn_sum += fn
@@ -339,5 +340,7 @@ if __name__ == "__main__":
     micro_precision = tp_sum / (tp_sum + fp_sum)
     micro_recall = tp_sum / (tp_sum + fn_sum)
     micro_f1 = 2 * micro_precision * micro_recall / (micro_precision + micro_recall)
-    wf.write('average,{0:.5f},{1:.5f},{2:.5f},{3:.5f},{4:5f},{5:5f}\n'.format(
-        macro_precision, macro_recall, macro_f1, micro_precision, micro_recall, micro_f1))
+    wf.write('macro,{0:.5f},{1:.5f},{2:.5f}\n'.format(
+        macro_precision, macro_recall, macro_f1))
+    wf.write('micro,{0:.5f},{1:.5f},{2:.5f}\n'.format(
+        micro_precision, micro_recall, micro_f1))
