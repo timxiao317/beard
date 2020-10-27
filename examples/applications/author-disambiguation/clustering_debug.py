@@ -240,6 +240,7 @@ def clustering(input_signatures, input_records, distance_model,
         print("True number of clusters", len(np.unique(y_true)))
         print("Number of computed clusters", len(np.unique(labels)))
         print(labels)
+        print(len(labels), len(y_true))
         b3_overall = b3_precision_recall_fscore(y_true, labels)
         paired_overall = paired_precision_recall_fscore(y_true, labels)
         print("new metrics =", paired_precision_recall_fscore_new(y_true, labels))
