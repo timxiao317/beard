@@ -313,7 +313,7 @@ if __name__ == "__main__":
     if not os.path.exists(args.out_dir):
         os.makedirs(args.out_dir)
 
-    wf = codecs.open(os.path.join(args.out_dir, args.out_filename), 'w', encoding='utf-8')
+    # wf = codecs.open(os.path.join(args.out_dir, args.out_filename), 'w', encoding='utf-8')
     # wf.write('name,precision,recall,f1,tp,fp,fn\n')
     tp_sum = 0
     fp_sum = 0
