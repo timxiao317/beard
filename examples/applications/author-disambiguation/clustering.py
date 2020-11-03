@@ -311,7 +311,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     _, train_name_list, test_name_list = load_split(args.split_dir, '{}_python2'.format(args.dataset_name))
     output_path = join(dirname(abspath(__file__)), args.dataset_name)
-    PROJ_DIR = dirname(dirname(abspath(__file__)))
+    PROJ_DIR = dirname(dirname(dirname(dirname(abspath(__file__)))))
     PARENT_PROJ_DIR = dirname(PROJ_DIR)
     dataset_path = join(PARENT_PROJ_DIR, 'sota_data', 'cikm_data', args.dataset_name)
     output_file = join(output_path, args.out_filename)

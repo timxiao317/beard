@@ -286,7 +286,8 @@ if __name__ == "__main__":
     PARENT_PROJ_DIR = dirname(PROJ_DIR)
     dataset_path = join(PARENT_PROJ_DIR, 'sota_data', 'cikm_data', args.dataset_name)
     output_path = join(dirname(abspath(__file__)), args.dataset_name)
-    os.makedirs(output_path)
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
     _, train_name_list, test_name_list = load_split(args.split_dir, '{}_python2'.format(args.dataset_name))
     input_signatures_list = [os.path.join(dataset_path, train_name, "signatures.json") for train_name in train_name_list]
     input_clusters_list = [os.path.join(dataset_path, train_name, "clusters.json") for train_name in train_name_list]
