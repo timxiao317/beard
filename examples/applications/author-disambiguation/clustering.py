@@ -293,11 +293,9 @@ if __name__ == "__main__":
     # parser.add_argument("--input_records", required=True, type=str)
     # parser.add_argument("--input_clusters", default=None, type=str)
     # parser.add_argument("--output_clusters", required=True, type=str)
-    parser.add_argument("--out_dir", default="out", type=str)
     parser.add_argument("--out_filename", default="result.csv", type=str)
     parser.add_argument("--dataset_name", default="whoiswho_new", type=str)
     parser.add_argument("--split_dir", default="../../../../split/", type=str)
-    parser.add_argument("--dataset_path", default="../../../../sota_data/louppe_data/whoiswho_new", type=str)
     parser.add_argument("--clustering_method", default="average", type=str)
     parser.add_argument("--clustering_threshold", default=None, type=float)
     parser.add_argument("--train_signatures", default=None, type=str)
@@ -315,6 +313,7 @@ if __name__ == "__main__":
     PARENT_PROJ_DIR = dirname(PROJ_DIR)
     dataset_path = join(PARENT_PROJ_DIR, 'sota_data', 'cikm_data', args.dataset_name)
     output_file = join(output_path, args.out_filename)
+    distance_model = join(output_path, args.distance_model)
     wf = codecs.open(output_file, 'w', encoding='utf-8')
     wf.write('name,precision,recall,f1,tp,fp,fn\n')
     tp_sum = 0
@@ -326,7 +325,7 @@ if __name__ == "__main__":
         input_signatures = os.path.join(dataset_path, test_name, "signatures.json")
         input_records = os.path.join(dataset_path, test_name, "records.json")
         input_clusters = os.path.join(dataset_path, test_name, "clusters.json")
-        tp, fp, fn, precision, recall, f1 = clustering(input_signatures, input_records, args.distance_model,
+        tp, fp, fn, precision, recall, f1 = clustering(input_signatures, input_records, distance_model,
                    input_clusters, None,
                    args.verbose, args.n_jobs, args.clustering_method,
                    args.train_signatures, args.clustering_threshold,
