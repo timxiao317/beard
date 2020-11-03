@@ -282,7 +282,7 @@ if __name__ == "__main__":
     parser.add_argument("--verbose", default=1, type=int)
 
     args = parser.parse_args()
-    PROJ_DIR = dirname(dirname(abspath(__file__)))
+    PROJ_DIR = dirname(dirname(dirname(dirname(abspath(__file__)))))
     PARENT_PROJ_DIR = dirname(PROJ_DIR)
     dataset_path = join(PARENT_PROJ_DIR, 'sota_data', 'cikm_data', args.dataset_name)
     output_path = join(dirname(abspath(__file__)), args.dataset_name)
