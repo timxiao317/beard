@@ -174,6 +174,7 @@ def pair_sampling(blocking_function,
     # Load ground-truth
     true_clusters = {}
     for clusters_filename in clusters_filename_list:
+        print(clusters_filename)
         true_clusters.update(json.load(open(clusters_filename, "r")))
     clusters_reversed = {v: k for k, va in true_clusters.iteritems()
                          for v in va}
