@@ -285,7 +285,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     PROJ_DIR = dirname(dirname(dirname(dirname(abspath(__file__)))))
     PARENT_PROJ_DIR = dirname(PROJ_DIR)
-    dataset_path = join(PARENT_PROJ_DIR, 'sota_data', 'cikm_data', args.dataset_name)
+    dataset_path = join(PARENT_PROJ_DIR, 'sota_data', 'louppe_data', args.dataset_name)
     output_path = join(dirname(abspath(__file__)), args.dataset_name)
     if not os.path.exists(output_path):
         os.makedirs(output_path)

@@ -311,7 +311,7 @@ if __name__ == "__main__":
     output_path = join(dirname(abspath(__file__)), args.dataset_name)
     PROJ_DIR = dirname(dirname(dirname(dirname(abspath(__file__)))))
     PARENT_PROJ_DIR = dirname(PROJ_DIR)
-    dataset_path = join(PARENT_PROJ_DIR, 'sota_data', 'cikm_data', args.dataset_name)
+    dataset_path = join(PARENT_PROJ_DIR, 'sota_data', 'louppe_data', args.dataset_name)
     output_file = join(output_path, args.out_filename)
     distance_model = join(output_path, args.distance_model)
     wf = codecs.open(output_file, 'w', encoding='utf-8')
