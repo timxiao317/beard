@@ -311,6 +311,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
     _, train_name_list, test_name_list = load_split(args.split_dir, '{}_python2'.format(args.dataset_name))
     output_path = join(dirname(abspath(__file__)), args.dataset_name)
+    PROJ_DIR = dirname(dirname(abspath(__file__)))
+    PARENT_PROJ_DIR = dirname(PROJ_DIR)
+    dataset_path = join(PARENT_PROJ_DIR, 'sota_data', 'cikm_data', args.dataset_name)
     output_file = join(output_path, args.out_filename)
     wf = codecs.open(output_file, 'w', encoding='utf-8')
     wf.write('name,precision,recall,f1,tp,fp,fn\n')
@@ -320,9 +323,9 @@ if __name__ == "__main__":
     precision_sum = 0
     recall_sum = 0
     for test_name in test_name_list:
-        input_signatures = os.path.join(args.dataset_path, test_name, "signatures.json")
-        input_records = os.path.join(args.dataset_path, test_name, "records.json")
-        input_clusters = os.path.join(args.dataset_path, test_name, "clusters.json")
+        input_signatures = os.path.join(dataset_path, test_name, "signatures.json")
+        input_records = os.path.join(dataset_path, test_name, "records.json")
+        input_clusters = os.path.join(dataset_path, test_name, "clusters.json")
         tp, fp, fn, precision, recall, f1 = clustering(input_signatures, input_records, args.distance_model,
                    input_clusters, None,
                    args.verbose, args.n_jobs, args.clustering_method,
