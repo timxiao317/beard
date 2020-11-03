@@ -21,6 +21,8 @@ import codecs
 import os
 import pickle
 import json
+from os.path import join, dirname, abspath
+
 import numpy as np
 
 from functools import partial
@@ -293,7 +295,7 @@ if __name__ == "__main__":
     # parser.add_argument("--output_clusters", required=True, type=str)
     parser.add_argument("--out_dir", default="out", type=str)
     parser.add_argument("--out_filename", default="result.csv", type=str)
-    parser.add_argument("--dataset_name", default="whoiswho_new_python2", type=str)
+    parser.add_argument("--dataset_name", default="whoiswho_new", type=str)
     parser.add_argument("--split_dir", default="../../../../split/", type=str)
     parser.add_argument("--dataset_path", default="../../../../sota_data/louppe_data/whoiswho_new", type=str)
     parser.add_argument("--clustering_method", default="average", type=str)
@@ -307,12 +309,10 @@ if __name__ == "__main__":
     parser.add_argument("--verbose", default=1, type=int)
     parser.add_argument("--n_jobs", default=1, type=int)
     args = parser.parse_args()
-    _, train_name_list, val_name_list, test_name_list = load_split(args.split_dir, args.dataset_name)
-
-    if not os.path.exists(args.out_dir):
-        os.makedirs(args.out_dir)
-
-    wf = codecs.open(os.path.join(args.out_dir, args.out_filename), 'w', encoding='utf-8')
+    _, train_name_list, test_name_list = load_split(args.split_dir, '{}_python2'.format(args.dataset_name))
+    output_path = join(dirname(abspath(__file__)), args.dataset_name)
+    output_file = join(output_path, args.out_filename)
+    wf = codecs.open(output_file, 'w', encoding='utf-8')
     wf.write('name,precision,recall,f1,tp,fp,fn\n')
     tp_sum = 0
     fp_sum = 0

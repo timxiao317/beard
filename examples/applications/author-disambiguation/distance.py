@@ -21,6 +21,8 @@ import argparse
 import os
 import pickle
 import json
+from os.path import join, dirname, abspath
+
 import numpy as np
 from scipy.special import expit
 
@@ -352,7 +354,7 @@ if __name__ == "__main__":
     parser.add_argument("--distance_model", default="linkage.dat",  type=str)
     # parser.add_argument("--input_signatures", default="../../data/wang_signatures.json",  type=str)
     # parser.add_argument("--input_records", default="../../data/wang_records.json", type=str)
-    parser.add_argument("--dataset_name", default="whoiswho_new_python2", type=str)
+    parser.add_argument("--dataset_name", default="whoiswho_new", type=str)
     parser.add_argument("--split_dir", default="../../../../split/", type=str)
     parser.add_argument("--dataset_path", default="../../../../sota_data/louppe_data/whoiswho_new", type=str)
     parser.add_argument("--input_ethnicity_estimator", required=False, type=str),
@@ -364,12 +366,14 @@ if __name__ == "__main__":
     if args.input_ethnicity_estimator:
         ethnicity_estimator = pickle.load(open(args.input_ethnicity_estimator,
                                                "r"))
-    _, train_name_list, val_name_list, test_name_list = load_split(args.split_dir, args.dataset_name)
+    _, train_name_list, test_name_list = load_split(args.split_dir, '{}_python2'.format(args.dataset_name))
     input_signatures_list = [os.path.join(args.dataset_path, train_name, "signatures.json") for train_name in train_name_list]
     input_records_list = [os.path.join(args.dataset_path, train_name, "records.json") for train_name in train_name_list]
 
-    
-    learn_model(args.distance_pairs, input_signatures_list, input_records_list,
-                args.distance_model, args.verbose,
+    output_path = join(dirname(abspath(__file__)), args.dataset_name)
+    distance_pairs = join(output_path, args.distance_pairs)
+    distance_model = join(output_path, args.distance_model)
+    learn_model(distance_pairs, input_signatures_list, input_records_list,
+                distance_model, args.verbose,
                 ethnicity_estimator=ethnicity_estimator,
                 fast=args.fast == 1)

@@ -308,7 +308,7 @@ if __name__ == "__main__":
     parser.add_argument("--verbose", default=1, type=int)
     parser.add_argument("--n_jobs", default=1, type=int)
     args = parser.parse_args()
-    _, train_name_list, val_name_list, test_name_list = load_split(args.split_dir, args.dataset_name)
+    _, train_name_list, test_name_list = load_split(args.split_dir, args.dataset_name)
 
     if not os.path.exists(args.out_dir):
         os.makedirs(args.out_dir)

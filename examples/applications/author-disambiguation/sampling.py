@@ -40,6 +40,7 @@ import argparse
 import json
 import math
 import os
+from os.path import dirname, join, abspath
 
 import numpy as np
 import random
@@ -268,9 +269,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     # parser.add_argument("--input_signatures", default="../../data/wang_signatures.json", type=str)
     # parser.add_argument("--input_clusters", default="../../data/wang_clusters.json", type=str)
-    parser.add_argument("--dataset_name", default="whoiswho_new_python2", type=str)
+    parser.add_argument("--dataset_name", default="whoiswho_new", type=str)
     parser.add_argument("--split_dir", default="../../../../split/", type=str)
-    parser.add_argument("--dataset_path", default="../../../../sota_data/louppe_data/whoiswho_new", type=str)
     parser.add_argument("--balanced", default=0, type=int)
     parser.add_argument("--sample_size", default=1000000, type=int)
     parser.add_argument("--output_pairs", default="pairs.json", type=str)
@@ -282,10 +282,14 @@ if __name__ == "__main__":
     parser.add_argument("--verbose", default=1, type=int)
 
     args = parser.parse_args()
-
-    _, train_name_list, val_name_list, test_name_list = load_split(args.split_dir, args.dataset_name)
-    input_signatures_list = [os.path.join(args.dataset_path, train_name, "signatures.json") for train_name in train_name_list]
-    input_clusters_list = [os.path.join(args.dataset_path, train_name, "clusters.json") for train_name in train_name_list]
+    PROJ_DIR = dirname(dirname(abspath(__file__)))
+    PARENT_PROJ_DIR = dirname(PROJ_DIR)
+    dataset_path = join(PARENT_PROJ_DIR, 'sota_data', 'cikm_data', args.dataset_name)
+    output_path = join(dirname(abspath(__file__)), args.dataset_name)
+    os.makedirs(output_path, exist_ok=True)
+    _, train_name_list, test_name_list = load_split(args.split_dir, '{}_python2'.format(args.dataset_name))
+    input_signatures_list = [os.path.join(dataset_path, train_name, "signatures.json") for train_name in train_name_list]
+    input_clusters_list = [os.path.join(dataset_path, train_name, "clusters.json") for train_name in train_name_list]
 
 
 
@@ -302,7 +306,6 @@ if __name__ == "__main__":
     )
     if args.verbose:
         print("number of pairs", len(pairs))
-
-    json.dump(pairs, open(args.output_pairs, "w"))
+    json.dump(pairs, open(join(output_path, args.output_pairs), "w"))
 
     print("The sampled pairs file was successfully created")
