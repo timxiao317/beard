@@ -312,6 +312,8 @@ if __name__ == "__main__":
     _, train_name_list, test_name_list = load_split(args.split_dir, '{}_python2'.format(args.test_dataset_name))
     exp_path = join(dirname(abspath(__file__)), exp_name)
     model_path = join(dirname(abspath(__file__)), args.train_dataset_name)
+    if not os.path.exists(exp_path):
+        os.makedirs(exp_path)
     PROJ_DIR = dirname(dirname(dirname(dirname(abspath(__file__)))))
     PARENT_PROJ_DIR = dirname(PROJ_DIR)
     dataset_path = join(PARENT_PROJ_DIR, 'sota_data', 'louppe_data', args.test_dataset_name)
