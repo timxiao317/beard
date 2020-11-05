@@ -276,7 +276,7 @@ if __name__ == "__main__":
     parser.add_argument("--sample_size", default=1000000, type=int)
     parser.add_argument("--output_pairs", default="pairs.json", type=str)
     parser.add_argument("--use_blocking", default=1, type=int)
-    parser.add_argument("--blocking_function", default="block_phonetic",
+    parser.add_argument("--blocking_function", default="block_single",
                         type=str)
     parser.add_argument("--blocking_threshold", default=1, type=int)
     parser.add_argument("--blocking_phonetic_alg", default="nysiis", type=str)
