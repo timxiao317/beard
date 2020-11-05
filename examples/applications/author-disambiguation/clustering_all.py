@@ -21,6 +21,8 @@ import codecs
 import os
 import pickle
 import json
+from os.path import join, dirname, abspath
+
 import numpy as np
 
 from functools import partial
@@ -239,8 +241,7 @@ def clustering(input_signatures, input_records, distance_model,
         print("Number of blocks =", len(clusterer.clusterers_))
         print("True number of clusters", len(np.unique(y_true)))
         print("Number of computed clusters", len(np.unique(labels)))
-        print(labels)
-        print(len(labels), len(y_true))
+
         b3_overall = b3_precision_recall_fscore(y_true, labels)
         paired_overall = paired_precision_recall_fscore(y_true, labels)
         print("new metrics =", paired_precision_recall_fscore_new(y_true, labels))
@@ -292,11 +293,10 @@ if __name__ == "__main__":
     # parser.add_argument("--input_records", required=True, type=str)
     # parser.add_argument("--input_clusters", default=None, type=str)
     # parser.add_argument("--output_clusters", required=True, type=str)
-    parser.add_argument("--out_dir", default="out", type=str)
     parser.add_argument("--out_filename", default="result.csv", type=str)
-    parser.add_argument("--dataset_name", default="whoiswho_new_python2", type=str)
+    parser.add_argument("--train_dataset_name", default="whoiswho_new", type=str)
+    parser.add_argument("--test_dataset_name", default="whoiswho_new", type=str)
     parser.add_argument("--split_dir", default="../../../../split/", type=str)
-    parser.add_argument("--dataset_path", default="../../../../sota_data/louppe_data/whoiswho_new", type=str)
     parser.add_argument("--clustering_method", default="average", type=str)
     parser.add_argument("--clustering_threshold", default=None, type=float)
     parser.add_argument("--train_signatures", default=None, type=str)
@@ -308,42 +308,46 @@ if __name__ == "__main__":
     parser.add_argument("--verbose", default=1, type=int)
     parser.add_argument("--n_jobs", default=1, type=int)
     args = parser.parse_args()
-    _, train_name_list, test_name_list = load_split(args.split_dir, args.dataset_name)
-
-    if not os.path.exists(args.out_dir):
-        os.makedirs(args.out_dir)
-
-    # wf = codecs.open(os.path.join(args.out_dir, args.out_filename), 'w', encoding='utf-8')
-    # wf.write('name,precision,recall,f1,tp,fp,fn\n')
+    exp_name = "{}_{}".format(args.train_dataset_name, args.test_dataset_name)
+    _, train_name_list, test_name_list = load_split(args.split_dir, '{}_python2'.format(args.test_dataset_name))
+    exp_path = join(dirname(abspath(__file__)), exp_name)
+    model_path = join(dirname(abspath(__file__)), args.train_dataset_name)
+    if not os.path.exists(exp_path):
+        os.makedirs(exp_path)
+    PROJ_DIR = dirname(dirname(dirname(dirname(abspath(__file__)))))
+    PARENT_PROJ_DIR = dirname(PROJ_DIR)
+    dataset_path = join(PARENT_PROJ_DIR, 'sota_data', 'louppe_data', args.test_dataset_name)
+    output_file = join(exp_path, args.out_filename)
+    distance_model = join(model_path, args.distance_model)
+    wf = codecs.open(output_file, 'w', encoding='utf-8')
+    wf.write('name,precision,recall,f1,tp,fp,fn\n')
     tp_sum = 0
     fp_sum = 0
     fn_sum = 0
     precision_sum = 0
     recall_sum = 0
-    for test_name in test_name_list:
-        if test_name != "juan liu":
-            continue
-        input_signatures = os.path.join(args.dataset_path, test_name, "signatures.json")
-        input_records = os.path.join(args.dataset_path, test_name, "records.json")
-        input_clusters = os.path.join(args.dataset_path, test_name, "clusters.json")
-        tp, fp, fn, precision, recall, f1 = clustering(input_signatures, input_records, args.distance_model,
+    for test_name in train_name_list + test_name_list:
+        input_signatures = os.path.join(dataset_path, test_name, "signatures.json")
+        input_records = os.path.join(dataset_path, test_name, "records.json")
+        input_clusters = os.path.join(dataset_path, test_name, "clusters.json")
+        tp, fp, fn, precision, recall, f1 = clustering(input_signatures, input_records, distance_model,
                    input_clusters, None,
                    args.verbose, args.n_jobs, args.clustering_method,
                    args.train_signatures, args.clustering_threshold,
                    args.results_file)
-        # wf.write('{0},{1:.5f},{2:.5f},{3:.5f},{4:.5f},{5:.5f},{6:.5f}\n'.format(test_name, precision, recall, f1, tp, fp, fn))
+        wf.write('{0},{1:.5f},{2:.5f},{3:.5f},{4:.5f},{5:.5f},{6:.5f}\n'.format(test_name, precision, recall, f1, tp, fp, fn))
         tp_sum += tp
         fp_sum += fp
         fn_sum += fn
         precision_sum += precision
         recall_sum += recall
-    macro_precision = precision_sum / len(test_name_list)
-    macro_recall = recall_sum / len(test_name_list)
+    macro_precision = precision_sum / len(train_name_list + test_name_list)
+    macro_recall = recall_sum / len(train_name_list + test_name_list)
     macro_f1 = 2 * macro_precision * macro_recall / (macro_precision + macro_recall)
     micro_precision = tp_sum / (tp_sum + fp_sum)
     micro_recall = tp_sum / (tp_sum + fn_sum)
     micro_f1 = 2 * micro_precision * micro_recall / (micro_precision + micro_recall)
-    # wf.write('macro,{0:.5f},{1:.5f},{2:.5f}\n'.format(
-    #     macro_precision, macro_recall, macro_f1))
-    # wf.write('micro,{0:.5f},{1:.5f},{2:.5f}\n'.format(
-    #     micro_precision, micro_recall, micro_f1))
+    wf.write('macro,{0:.5f},{1:.5f},{2:.5f}\n'.format(
+        macro_precision, macro_recall, macro_f1))
+    wf.write('micro,{0:.5f},{1:.5f},{2:.5f}\n'.format(
+        micro_precision, micro_recall, micro_f1))
