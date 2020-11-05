@@ -356,7 +356,7 @@ if __name__ == "__main__":
     # parser.add_argument("--input_records", default="../../data/wang_records.json", type=str)
     parser.add_argument("--dataset_name", default="whoiswho_new", type=str)
     parser.add_argument("--split_dir", default="../../../../split/", type=str)
-    parser.add_argument("--dataset_path", default="../../../../sota_data/louppe_data/whoiswho_new", type=str)
+    parser.add_argument("--dataset_path", default="../../../../sota_data/louppe_data", type=str)
     parser.add_argument("--input_ethnicity_estimator", required=False, type=str),
     parser.add_argument("--fast", default=0, type=int)
     parser.add_argument("--verbose", default=2, type=int)
@@ -366,9 +366,10 @@ if __name__ == "__main__":
     if args.input_ethnicity_estimator:
         ethnicity_estimator = pickle.load(open(args.input_ethnicity_estimator,
                                                "r"))
+    dataset_path = join(args.dataset_path, args.dataset_name)
     _, train_name_list, test_name_list = load_split(args.split_dir, '{}_python2'.format(args.dataset_name))
-    input_signatures_list = [os.path.join(args.dataset_path, train_name, "signatures.json") for train_name in train_name_list]
-    input_records_list = [os.path.join(args.dataset_path, train_name, "records.json") for train_name in train_name_list]
+    input_signatures_list = [os.path.join(dataset_path, train_name, "signatures.json") for train_name in train_name_list]
+    input_records_list = [os.path.join(dataset_path, train_name, "records.json") for train_name in train_name_list]
 
     output_path = join(dirname(abspath(__file__)), args.dataset_name)
     distance_pairs = join(output_path, args.distance_pairs)
