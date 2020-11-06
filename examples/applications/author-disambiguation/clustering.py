@@ -336,7 +336,7 @@ if __name__ == "__main__":
                    args.train_signatures, args.clustering_threshold,
                    args.results_file)
         print(type(test_name))
-        wf.write('{0},{1:.5f},{2:.5f},{3:.5f},{4:.5f},{5:.5f},{6:.5f}\n'.format(test_name.encoding('utf-8'), precision, recall, f1, tp, fp, fn))
+        wf.write('{0},{1:.5f},{2:.5f},{3:.5f},{4:.5f},{5:.5f},{6:.5f}\n'.format(test_name, precision, recall, f1, tp, fp, fn))
         tp_sum += tp
         fp_sum += fp
         fn_sum += fn
