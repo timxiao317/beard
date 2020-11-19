@@ -326,24 +326,22 @@ if __name__ == "__main__":
     fn_sum = 0
     precision_sum = 0
     recall_sum = 0
-    for test_name in test_name_list:
-        try:
-            input_signatures = os.path.join(dataset_path, test_name, "signatures.json")
-            input_records = os.path.join(dataset_path, test_name, "records.json")
-            input_clusters = os.path.join(dataset_path, test_name, "clusters.json")
-            tp, fp, fn, precision, recall, f1 = clustering(input_signatures, input_records, distance_model,
-                       input_clusters, None,
-                       args.verbose, args.n_jobs, args.clustering_method,
-                       args.train_signatures, args.clustering_threshold,
-                       args.results_file)
-            wf.write('{0},{1:.5f},{2:.5f},{3:.5f},{4:.5f},{5:.5f},{6:.5f}\n'.format(test_name.encode('utf-8'), precision, recall, f1, tp, fp, fn))
-            tp_sum += tp
-            fp_sum += fp
-            fn_sum += fn
-            precision_sum += precision
-            recall_sum += recall
-        except:
-            continue
+    for test_name in test_name_list[:400]:
+        input_signatures = os.path.join(dataset_path, test_name, "signatures.json")
+        input_records = os.path.join(dataset_path, test_name, "records.json")
+        input_clusters = os.path.join(dataset_path, test_name, "clusters.json")
+        tp, fp, fn, precision, recall, f1 = clustering(input_signatures, input_records, distance_model,
+                   input_clusters, None,
+                   args.verbose, args.n_jobs, args.clustering_method,
+                   args.train_signatures, args.clustering_threshold,
+                   args.results_file)
+        wf.write('{0},{1:.5f},{2:.5f},{3:.5f},{4:.5f},{5:.5f},{6:.5f}\n'.format(test_name.encode('utf-8'), precision, recall, f1, tp, fp, fn))
+        tp_sum += tp
+        fp_sum += fp
+        fn_sum += fn
+        precision_sum += precision
+        recall_sum += recall
+        continue
     macro_precision = precision_sum / len(test_name_list)
     macro_recall = recall_sum / len(test_name_list)
     macro_f1 = 2 * macro_precision * macro_recall / (macro_precision + macro_recall)
