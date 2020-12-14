@@ -265,8 +265,8 @@ def clustering(input_signatures, input_records, distance_model,
 
     pres = clusterer.labels_
     truth = {sig: clu for clu, sigs in true_clusters.items() for sig in sigs}
-    truth = [truth[sig] for sig_i, sig in enumerate(sorted(truth.keys()))]
-    result = pairwise_precision_recall_f1(truth, pres)
+    new_truth = [truth[sig] for sig_i, sig in enumerate(sorted(truth.keys()))]
+    result = pairwise_precision_recall_f1(new_truth, pres)
     if output_clusters:
         with open(output_clusters, 'w') as f:
             f.write(','.join(map(str, result)))
