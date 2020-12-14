@@ -83,6 +83,42 @@ def _affinity(X, step=10000):
     return distances
 
 
+def pairwise_precision_recall_f1(preds, truths):
+    # print("preds", preds)
+    # print("truths", truths)
+    tp = 0
+    fp = 0
+    fn = 0
+    n_samples = len(preds)
+    for i in range(n_samples - 1):
+        pred_i = preds[i]
+        for j in range(i + 1, n_samples):
+            pred_j = preds[j]
+            if pred_i == pred_j:
+                if truths[i] == truths[j]:
+                    tp += 1
+                else:
+                    fp += 1
+            elif truths[i] == truths[j]:
+                fn += 1
+    tp_plus_fp = tp + fp
+    tp_plus_fn = tp + fn
+    tp = float(tp)
+    if tp_plus_fp == 0:
+        precision = 0.
+    else:
+        precision = tp / tp_plus_fp
+    if tp_plus_fn == 0:
+        recall = 0.
+    else:
+        recall = tp / tp_plus_fn
+    if not precision or not recall:
+        f1 = 0.
+    else:
+        f1 = (2 * precision * recall) / (precision + recall)
+    return tp, fp, fn, precision, recall, f1
+
+
 def clustering(input_signatures, input_records, distance_model,
                input_clusters=None, output_clusters=None,
                verbose=1, n_jobs=-1, clustering_method="average",
@@ -177,7 +213,7 @@ def clustering(input_signatures, input_records, distance_model,
                                           input_records)
 
     indices = {}
-    X = np.empty((len(signatures), 1), dtype=np.object)
+    X, y = np.empty((len(signatures), 1), dtype=np.object), None
     for i, signature in enumerate(sorted(signatures.values(),
                                          key=lambda s: s["signature_id"])):
         X[i, 0] = signature
@@ -190,15 +226,17 @@ def clustering(input_signatures, input_records, distance_model,
                                  threshold=blocking_threshold,
                                  phonetic_algorithm=blocking_phonetic_alg)
 
+    true_clusters = json.load(open(input_clusters, "r"))
+    '''
     # Semi-supervised block clustering
     if input_clusters:
         true_clusters = json.load(open(input_clusters, "r"))
         y_true = -np.ones(len(X), dtype=np.int)
 
-        for label_index, (label, signature_ids) in enumerate(true_clusters.items()):
+        labelIndexs = tuple(true_clusters.keys())
+        for label, signature_ids in true_clusters.items():
             for signature_id in signature_ids:
-                if signature_id in indices:
-                    y_true[indices[signature_id]] = label_index
+                y_true[indices[signature_id]] = labelIndexs.index(label)
 
         y = -np.ones(len(X), dtype=np.int)
 
@@ -210,21 +248,31 @@ def clustering(input_signatures, input_records, distance_model,
             test_ids = list(set([x['signature_id'] for _, x in
                                  signatures.iteritems()]) - set(train_ids))
         else:
-            y = y_true
+            y = None
 
     else:
         y = None
-
+    '''
     clusterer = BlockClustering(
-        blocking=block_function,
+        # blocking=block_function,
         base_estimator=ScipyHierarchicalClustering(
             affinity=_affinity,
+            n_clusters=len(true_clusters),
             threshold=clustering_threshold,
             method=clustering_method,
             supervised_scoring=b3_f_score),
         verbose=verbose,
         n_jobs=n_jobs).fit(X, y)
 
+    pres = clusterer.labels_
+    truth = {sig: clu for clu, sigs in true_clusters.items() for sig in sigs}
+    new_truth = [truth[sig] for sig_i, sig in enumerate(sorted(truth.keys()))]
+    result = pairwise_precision_recall_f1(pres, new_truth)
+    if output_clusters:
+        with open(output_clusters, 'w') as f:
+            f.write(','.join(map(str, result)))
+    return result
+    '''
     labels = clusterer.labels_
 
     # Save predicted clusters
@@ -238,17 +286,13 @@ def clustering(input_signatures, input_records, distance_model,
         json.dump(clusters, open(output_clusters, "w"))
 
     # Statistics
-    if input_clusters:
+    if verbose and input_clusters:
         print("Number of blocks =", len(clusterer.clusterers_))
         print("True number of clusters", len(np.unique(y_true)))
         print("Number of computed clusters", len(np.unique(labels)))
 
         b3_overall = b3_precision_recall_fscore(y_true, labels)
-        paired_overall = paired_precision_recall_fscore(y_true, labels)
-        print("new metrics =", paired_precision_recall_fscore_new(y_true, labels))
-        print("F-score (overall) =", paired_overall[-1])
-        print("b^3 F-score (overall) =", b3_overall[2])
-
+        print("B^3 F-score (overall) =", b3_overall[2])
 
         if train_signatures_file:
             b3_train = b3_precision_recall_fscore(
@@ -283,8 +327,7 @@ def clustering(input_signatures, input_records, distance_model,
                                "test": list(paired_test)
                                }
                 }, open(results_file, 'w'))
-        return paired_overall
-
+    '''
 
 
 if __name__ == "__main__":
@@ -336,7 +379,8 @@ if __name__ == "__main__":
                    args.verbose, args.n_jobs, args.clustering_method,
                    args.train_signatures, args.clustering_threshold,
                    args.results_file)
-        wf.write('{0},{1:.5f},{2:.5f},{3:.5f},{4:.5f},{5:.5f},{6:.5f}\n'.format(test_name, precision, recall, f1, tp, fp, fn))
+        print(test_name, precision, recall, f1)
+        wf.write('{0},{1:.5f},{2:.5f},{3:.5f},{4:.5f},{5:.5f},{6:.5f}\n'.format(test_name.encode('utf-8'), precision, recall, f1, tp, fp, fn))
         tp_sum += tp
         fp_sum += fp
         fn_sum += fn
