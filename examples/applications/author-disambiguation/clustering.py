@@ -114,7 +114,7 @@ def pairwise_precision_recall_f1(preds, truths):
         f1 = 0.
     else:
         f1 = (2 * precision * recall) / (precision + recall)
-    return 1, 1, 1, precision, recall, f1
+    return tp, fp, fn, precision, recall, f1
 
 
 def clustering(input_signatures, input_records, distance_model,
