@@ -226,7 +226,6 @@ def clustering(input_signatures, input_records, distance_model,
                                  phonetic_algorithm=blocking_phonetic_alg)
 
     true_clusters = json.load(open(input_clusters, "r"))
-
     '''
     # Semi-supervised block clustering
     if input_clusters:
@@ -253,7 +252,7 @@ def clustering(input_signatures, input_records, distance_model,
     else:
         y = None
     '''
-    print(X)
+    print(true_clusters)
     clusterer = BlockClustering(
         # blocking=block_function,
         base_estimator=ScipyHierarchicalClustering(
