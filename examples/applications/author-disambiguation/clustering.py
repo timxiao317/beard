@@ -253,7 +253,7 @@ def clustering(input_signatures, input_records, distance_model,
     else:
         y = None
     '''
-
+    print(X)
     clusterer = BlockClustering(
         # blocking=block_function,
         base_estimator=ScipyHierarchicalClustering(
@@ -268,7 +268,6 @@ def clustering(input_signatures, input_records, distance_model,
     pres = clusterer.labels_
     truth = {sig: clu for clu, sigs in true_clusters.items() for sig in sigs}
     result = pairwise_precision_recall_f1(truth, pres)
-    print(result)
     if output_clusters:
         with open(output_clusters, 'w') as f:
             f.write(','.join(map(str, result)))
