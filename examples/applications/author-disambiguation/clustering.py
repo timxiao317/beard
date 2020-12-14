@@ -84,8 +84,8 @@ def _affinity(X, step=10000):
 
 
 def pairwise_precision_recall_f1(preds, truths):
-    print("preds", preds)
-    print("truths", truths)
+    # print("preds", preds)
+    # print("truths", truths)
     tp = 0
     fp = 0
     fn = 0
