@@ -332,11 +332,15 @@ def clustering(input_signatures, input_records, distance_model,
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--distance_model", required=True, type=str)
-    parser.add_argument("--input_signatures", required=True, type=str)
-    parser.add_argument("--input_records", required=True, type=str)
-    parser.add_argument("--input_clusters", default=None, type=str)
-    parser.add_argument("--output_clusters", required=True, type=str)
+    parser.add_argument("--distance_model", default="linkage.dat", type=str)
+    # parser.add_argument("--input_signatures", required=True, type=str)
+    # parser.add_argument("--input_records", required=True, type=str)
+    # parser.add_argument("--input_clusters", default=None, type=str)
+    # parser.add_argument("--output_clusters", required=True, type=str)
+    parser.add_argument("--out_filename", default="result.csv", type=str)
+    parser.add_argument("--train_dataset_name", default="whoiswho_new", type=str)
+    parser.add_argument("--test_dataset_name", default="whoiswho_new", type=str)
+    parser.add_argument("--split_dir", default="../../../../split/", type=str)
     parser.add_argument("--clustering_method", default="average", type=str)
     parser.add_argument("--clustering_threshold", default=None, type=float)
     parser.add_argument("--train_signatures", default=None, type=str)
@@ -348,9 +352,49 @@ if __name__ == "__main__":
     parser.add_argument("--verbose", default=1, type=int)
     parser.add_argument("--n_jobs", default=1, type=int)
     args = parser.parse_args()
-
-    clustering(args.input_signatures, args.input_records, args.distance_model,
-               args.input_clusters, args.output_clusters,
-               args.verbose, args.n_jobs, args.clustering_method,
-               args.train_signatures, args.clustering_threshold,
-               args.results_file)
+    exp_name = "{}_{}".format(args.train_dataset_name, args.test_dataset_name)
+    _, train_name_list, test_name_list = load_split(args.split_dir, '{}_python2'.format(args.test_dataset_name))
+    exp_path = join(dirname(abspath(__file__)), exp_name)
+    model_path = join(dirname(abspath(__file__)), args.train_dataset_name)
+    if not os.path.exists(exp_path):
+        os.makedirs(exp_path)
+    PROJ_DIR = dirname(dirname(dirname(dirname(abspath(__file__)))))
+    PARENT_PROJ_DIR = dirname(PROJ_DIR)
+    dataset_path = join(PARENT_PROJ_DIR, 'sota_data', 'louppe_data', args.test_dataset_name)
+    output_file = join(exp_path, args.out_filename)
+    distance_model = join(model_path, args.distance_model)
+    wf = codecs.open(output_file, 'w', encoding='utf-8')
+    wf.write('name,precision,recall,f1,tp,fp,fn\n')
+    tp_sum = 0
+    fp_sum = 0
+    fn_sum = 0
+    precision_sum = 0
+    recall_sum = 0
+    for test_name in test_name_list[:400]:
+        try:
+            input_signatures = os.path.join(dataset_path, test_name, "signatures.json")
+            input_records = os.path.join(dataset_path, test_name, "records.json")
+            input_clusters = os.path.join(dataset_path, test_name, "clusters.json")
+            tp, fp, fn, precision, recall, f1 = clustering(input_signatures, input_records, distance_model,
+                       input_clusters, None,
+                       args.verbose, args.n_jobs, args.clustering_method,
+                       args.train_signatures, args.clustering_threshold,
+                       args.results_file)
+            wf.write('{0},{1:.5f},{2:.5f},{3:.5f},{4:.5f},{5:.5f},{6:.5f}\n'.format(test_name.encode('utf-8'), precision, recall, f1, tp, fp, fn))
+            tp_sum += tp
+            fp_sum += fp
+            fn_sum += fn
+            precision_sum += precision
+            recall_sum += recall
+        except:
+            continue
+    macro_precision = precision_sum / len(test_name_list)
+    macro_recall = recall_sum / len(test_name_list)
+    macro_f1 = 2 * macro_precision * macro_recall / (macro_precision + macro_recall)
+    micro_precision = tp_sum / (tp_sum + fp_sum)
+    micro_recall = tp_sum / (tp_sum + fn_sum)
+    micro_f1 = 2 * micro_precision * micro_recall / (micro_precision + micro_recall)
+    wf.write('macro,{0:.5f},{1:.5f},{2:.5f}\n'.format(
+        macro_precision, macro_recall, macro_f1))
+    wf.write('micro,{0:.5f},{1:.5f},{2:.5f}\n'.format(
+        micro_precision, micro_recall, micro_f1))
