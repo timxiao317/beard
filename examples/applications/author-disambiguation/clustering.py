@@ -351,6 +351,7 @@ if __name__ == "__main__":
     parser.add_argument("--blocking_phonetic_alg", default="nysiis", type=str)
     parser.add_argument("--verbose", default=1, type=int)
     parser.add_argument("--n_jobs", default=1, type=int)
+    parser.add_argument("--sample_size", default=1000000, type=int)
     args = parser.parse_args()
     exp_name = "{}_{}".format(args.train_dataset_name, args.test_dataset_name)
     _, train_name_list, test_name_list = load_split(args.split_dir, '{}_python2'.format(args.test_dataset_name))
@@ -362,7 +363,7 @@ if __name__ == "__main__":
     PARENT_PROJ_DIR = dirname(PROJ_DIR)
     dataset_path = join(PARENT_PROJ_DIR, 'sota_data', 'louppe_data', args.test_dataset_name)
     output_file = join(exp_path, args.out_filename)
-    distance_model = join(model_path, args.distance_model)
+    distance_model = join(model_path, "linkage_{}.json".format(args.sample_size))
     wf = codecs.open(output_file, 'w', encoding='utf-8')
     wf.write('name,precision,recall,f1,tp,fp,fn\n')
     tp_sum = 0
