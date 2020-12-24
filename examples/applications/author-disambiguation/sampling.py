@@ -308,6 +308,6 @@ if __name__ == "__main__":
     )
     if args.verbose:
         print("number of pairs", len(pairs))
-    json.dump(pairs, open(join(output_path, args.output_pairs), "w"))
+    json.dump(pairs, open(join(output_path, "pair_{}.json".format(args.sample_size)), "w"))
 
     print("The sampled pairs file was successfully created")
