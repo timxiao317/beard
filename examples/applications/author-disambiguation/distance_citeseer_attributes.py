@@ -360,6 +360,7 @@ if __name__ == "__main__":
     parser.add_argument("--input_ethnicity_estimator", required=False, type=str),
     parser.add_argument("--fast", default=0, type=int)
     parser.add_argument("--verbose", default=2, type=int)
+    parser.add_argument("--sample_size", default=1000000, type=int)
     args = parser.parse_args()
 
     ethnicity_estimator = None
@@ -372,8 +373,8 @@ if __name__ == "__main__":
     input_records_list = [os.path.join(dataset_path, train_name, "records.json") for train_name in train_name_list]
 
     output_path = join(dirname(abspath(__file__)), args.dataset_name)
-    distance_pairs = join(output_path, args.distance_pairs)
-    distance_model = join(output_path, args.distance_model)
+    distance_pairs = join(output_path, "pair_{}.json".format(args.sample_size))
+    distance_model = join(output_path, "linkage_{}.json".format(args.sample_size))
     learn_model(distance_pairs, input_signatures_list, input_records_list,
                 distance_model, args.verbose,
                 ethnicity_estimator=ethnicity_estimator,
