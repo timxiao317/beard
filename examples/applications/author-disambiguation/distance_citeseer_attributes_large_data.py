@@ -272,10 +272,10 @@ def _build_distance_estimator(X, y, verbose=0, ethnicity_estimator=None,
 
     # Train a classifier on these vectors
 
-    classifier = GradientBoostingClassifier(n_estimators=200,
+    classifier = GradientBoostingClassifier(n_estimators=500,
                                             max_depth=9,
                                             max_features=None,
-                                            learning_rate=0.125,
+                                            learning_rate=0.05,
                                             verbose=verbose)
 
     # classifier = RandomForestClassifier(n_estimators=500,
