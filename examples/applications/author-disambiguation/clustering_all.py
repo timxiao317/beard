@@ -353,7 +353,7 @@ if __name__ == "__main__":
     parser.add_argument("--n_jobs", default=1, type=int)
     parser.add_argument("--sample_size", default=1000000, type=int)
     args = parser.parse_args()
-    exp_name = "{}_{}".format(args.train_dataset_name, args.test_dataset_name)
+    exp_name = "{}_{}_{}".format(args.train_dataset_name, args.test_dataset_name, args.sample_size)
     _, train_name_list, test_name_list = load_split(args.split_dir, '{}_python2'.format(args.test_dataset_name))
     exp_path = join(dirname(abspath(__file__)), exp_name)
     model_path = join(dirname(abspath(__file__)), args.train_dataset_name)
