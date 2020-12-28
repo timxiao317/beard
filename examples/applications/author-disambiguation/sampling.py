@@ -259,6 +259,8 @@ def pair_sampling(blocking_function,
         # negative = dasn + dadn
         positive = sasn
         negative = dasn
+        print(len(positive))
+        print(len(negative))
         pairs = random.sample(positive,
                               sample_size/2) + random.sample(negative,
                                                              sample_size/2)
